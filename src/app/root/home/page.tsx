@@ -1,19 +1,18 @@
 "use client"
 
-import { Upload, Link, ArrowUp, CheckCircle, XCircle } from "lucide-react"
+import { Link, ArrowUp, CheckCircle, XCircle } from "lucide-react"
 import { Button } from "@/components/Button"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
-import { useState, useRef} from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "@/app/contexts/SessionContext"
 
 export default function ReelReviewPage() {
-  const [activeMode, setActiveMode] = useState<"link" | "video">("link")
+  const { setVideoLink, setReels } = useSession()
   const [linkInput, setLinkInput] = useState("")
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [linkValidation, setLinkValidation] = useState<{ isValid: boolean; message: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   const validateLink = (url: string) => {
@@ -51,52 +50,65 @@ export default function ReelReviewPage() {
     }
   }
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      // Validate file type
-      const validTypes = ["video/mp4", "video/mov", "video/avi", "video/quicktime", "video/x-msvideo"]
-      if (validTypes.includes(file.type)) {
-        setSelectedFile(file)
-      } else {
-        alert("Please select a valid video file (MP4, MOV, AVI)")
-        event.target.value = ""
-      }
-    }
-  }
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    const file = e.dataTransfer.files[0]
-    if (file && file.type.startsWith("video/")) {
-      setSelectedFile(file)
-    }
-  }
 
   const handleSubmit = async () => {
-    if (activeMode === "link" && (!linkInput.trim() || !linkValidation?.isValid)) {
-      return
-    }
-    if (activeMode === "video" && !selectedFile) {
+    if (!linkInput.trim() || !linkValidation?.isValid) {
       return
     }
 
     setIsProcessing(true)
 
-    // Simulate processing time
-    setTimeout(() => {
-      router.push("/members")
-    }, 2000)
+    const link = linkInput.split("&list=")[0]
+
+    setVideoLink(link)
+
+    console.log(link)
+
+    const response = await fetch("/api/getReels", {
+      method: "POST",
+      body: JSON.stringify({ link: link }),
+    })
+
+    if (!response.ok) {
+      setLinkValidation({ isValid: false, message: "Failed to get reels" })
+      setIsProcessing(false)
+      return;
+    }
+
+    const data = await response.json()
+
+    const clips = data.data.clips
+
+    const reels = []
+    for (const clip of clips) {
+      // Convert base64 clip bytes to video blob
+      let videoBlob: Blob | null = null;
+      if (clip.clip_bytes) {
+        const binaryString = atob(clip.clip_bytes);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        videoBlob = new Blob([bytes], { type: 'video/mp4' });
+      }
+      
+      const reel = {
+        transcript: clip.topic,
+        topics: clip.summary,
+        videoBlob: videoBlob!,
+      }
+      reels.push(reel)
+    }
+
+    setReels(reels)
+
+    router.push("/summary")
   }
 
   return (
     <div>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col origin-top">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col origin-top mt-16">
         <main className="flex-1 flex flex-col items-center justify-center px-8 py-12 max-w-6xl mx-auto w-full text-center">
         <div className="mb-12">
           <span className="text-7xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6 tracking-tight">
@@ -132,134 +144,61 @@ export default function ReelReviewPage() {
         </div>
 
         <div className="flex flex-col items-center gap-8 w-full">
-          <div className="flex bg-white rounded-xl p-2 mr-4 shadow-lg border border-slate-200">
-            <Button
-              variant={activeMode === "link" ? "primary" : "outline"}
-              onClick={() => setActiveMode("link")}
-              className={`px-8 py-3 mr-4 rounded-lg transition-all font-medium ${
-                activeMode === "link"
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-slate-600 hover:text-slate-800 hover:bg-slate-50"
-              }`}
-            >
-              <Link className="w-5 h-5" />
-              Insert Link
-            </Button>
-            <Button
-              variant={activeMode === "video" ? "primary" : "outline"}
-              onClick={() => setActiveMode("video")}
-              className={`px-8 py-3 mr-2 rounded-lg transition-all font-medium ${
-                activeMode === "video"
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-slate-600 hover:text-slate-800 hover:bg-slate-50"
-              }`}
-            >
-              <Upload className="w-5 h-5 ml-2" />
-              Upload Video
-            </Button>
-          </div>
-
-           {activeMode === "link" ? (
-            <div className="flex flex-col items-center gap-6 w-full max-w-2xl">
-              <div className="w-full bg-white rounded-xl p-6 shadow-lg border border-slate-200">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center">Paste Your Video Link</h3>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      value={linkInput}
-                      onChange={(e) => {
-                        setLinkInput(e.target.value)
-                        validateLink(e.target.value)
-                      }}
-                      placeholder="https://youtube.com/watch?v=..."
-                      className={`w-full bg-slate-50 border focus:ring-2 focus:ring-opacity-50 py-4 px-4 text-base shadow-sm rounded-lg outline-none transition-all ${
-                        linkValidation?.isValid === false
-                          ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                          : linkValidation?.isValid === true
-                            ? "border-green-300 focus:border-green-500 focus:ring-green-500"
-                            : "border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                      }`}
-                    />
-                    {linkValidation && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        {linkValidation.isValid ? (
-                          <CheckCircle className="w-5 h-5 text-green-500" />
-                        ) : (
-                          <XCircle className="w-5 h-5 text-red-500" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    onClick={handleSubmit}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-4 font-medium shadow-sm rounded-lg text-base disabled:opacity-50"
-                    disabled={!linkInput.trim() || !linkValidation?.isValid || isProcessing}
-                  >
-                    {isProcessing ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <ArrowUp className="w-5 h-5" />
-                    )}
-                  </Button>
+          <div className="flex flex-col items-center gap-6 w-full max-w-2xl">
+            <div className="w-full bg-white rounded-xl p-6 shadow-lg border border-slate-200">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center">Paste Your Video Link</h3>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={linkInput}
+                    onChange={(e) => {
+                      setLinkInput(e.target.value)
+                      validateLink(e.target.value)
+                    }}
+                    placeholder="https://youtube.com/watch?v=..."
+                    className={`w-full bg-slate-50 border focus:ring-2 focus:ring-opacity-50 py-4 px-4 text-base shadow-sm rounded-lg outline-none transition-all ${
+                      linkValidation?.isValid === false
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                        : linkValidation?.isValid === true
+                          ? "border-green-300 focus:border-green-500 focus:ring-green-500"
+                          : "border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                    }`}
+                  />
+                  {linkValidation && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {linkValidation.isValid ? (
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-500" />
+                      )}
+                    </div>
+                  )}
                 </div>
-                {linkValidation && (
-                  <p
-                    className={`text-sm mt-3 text-center ${linkValidation.isValid ? "text-green-600" : "text-red-600"}`}
-                  >
-                    {linkValidation.message}
-                  </p>
-                )}
-                <p className="text-sm text-slate-500 mt-3 text-center">
-                  Supports YouTube, Vimeo, and most video platforms
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-4 w-full">
-              <div
-                className="w-full max-w-2xl h-48 border-2 border-dashed border-blue-300 rounded-xl flex flex-col items-center justify-center bg-white/80 hover:bg-white hover:border-blue-400 transition-all cursor-pointer shadow-sm"
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              >
-                <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileSelect} className="hidden" />
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                  <Upload className="w-8 h-8 text-blue-600" />
-                </div>
-                {selectedFile ? (
-                  <div className="text-center">
-                    <p className="text-slate-800 font-medium">{selectedFile.name}</p>
-                    <p className="text-sm text-slate-500 mt-1">{(selectedFile.size / (1024 * 1024)).toFixed(1)} MB</p>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-slate-600 font-medium">Drop your video here or click to browse</p>
-                    <p className="text-sm text-slate-500 mt-1">Supports MP4, MOV, AVI and more</p>
-                  </>
-                )}
-              </div>
-              {selectedFile && (
                 <Button
                   onClick={handleSubmit}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 font-medium shadow-sm rounded-lg"
-                  disabled={isProcessing}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-4 font-medium shadow-sm rounded-lg text-base disabled:opacity-50"
+                  disabled={!linkInput.trim() || !linkValidation?.isValid || isProcessing}
                 >
                   {isProcessing ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Processing...
-                    </>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <>
-                      <Upload className="w-5 h-5 mr-2" />
-                      Process Video
-                    </>
+                    <ArrowUp className="w-5 h-5" />
                   )}
                 </Button>
+              </div>
+              {linkValidation && (
+                <p
+                  className={`text-sm mt-3 text-center ${linkValidation.isValid ? "text-green-600" : "text-red-600"}`}
+                >
+                  {linkValidation.message}
+                </p>
               )}
+              <p className="text-sm text-slate-500 mt-3 text-center">
+                Supports YouTube videos
+              </p>
             </div>
-          )}
+          </div>
         <div className="mt-16 w-full max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-slate-800 mb-4">See the Magic in Action</h2>

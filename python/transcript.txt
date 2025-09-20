@@ -1,0 +1,314 @@
+[0:00:00] True to its name, only Oracle
+seemed to see this coming.
+[0:00:03] Oracle is having its
+biggest jump since 1992.
+[0:00:08] What a blowout quarter
+for the software company.
+[0:00:11] Maybe the stock of the year.
+[0:00:13] And then just days later...
+[0:00:15] TikTok's US operations is
+[0:00:16] said to be acquired by a
+consortium including Oracle.
+[0:00:19] Oracle shares spike
+after its named as part
+[0:00:21] of the consortium.
+[0:00:23] What was going on?
+[0:00:24] This was an old-school enterprise tech
+[0:00:26] firm tickling investors
+in places only a flashy
+[0:00:29] startup normally reaches.
+[0:00:31] Because Oracle basically said that
+[0:00:33] they have almost half a
+trillion dollars of contracts
+[0:00:37] to be earned in the next few years.
+[0:00:39] And that was a shocker.
+[0:00:41] Everyone was modeling
+maybe, you know, $150 billion.
+[0:00:45] It blew away analyst expectations.
+[0:00:47] Now, Oracle's deeply connected to one
+[0:00:50] of the hottest social media
+properties on the planet
+[0:00:53] and behind one
+[0:00:54] of the most ambitious infrastructure
+projects on the planet.
+[0:00:58] Oracle had been written off
+as a kind of IBM-like company.
+[0:01:02] This is an incredible comeback story.
+[0:01:10] Clearly we had an
+amazing start to the year -
+[0:01:13] This, is Safra Catz.
+[0:01:16] Safra Catz is the CEO
+[0:01:18] and she's considered by
+Wall Street to be one
+[0:01:20] of just the sharpest financial
+minds out there, right?
+[0:01:24] I mean, investors love her.
+[0:01:26] Never more so than on September
+9th when she stunned Wall
+[0:01:29] Street with Oracle's quarterly earnings.
+[0:01:32] They showed a spike in
+bookings at a scale which nobody
+[0:01:36] had ever really seen before.
+[0:01:38] At the end of its fiscal first quarter,
+[0:01:40] Oracle's $455 billion
+forecast was a fourfold
+[0:01:44] increase over the same
+period a year earlier.
+[0:01:48] Infrastructure revenue alone will grow 77%
+[0:01:51] to $18 billion this fiscal year.
+[0:01:54] So yeah, it was a good day
+[0:01:55] to be Oracle co-founder Larry Ellison,
+[0:01:57] whose net worth soared by
+$89 billion as a result,
+[0:02:01] almost enough to buy
+Starbucks or four Lululemons
+[0:02:05] or half a Qualcomm.
+[0:02:07] That was the biggest one
+day gain ever recorded on the
+[0:02:09] Bloomberg Billionaires Index.
+[0:02:10] He must have been very pleased.
+[0:02:13] You know, online commentators
+were saying, okay,
+[0:02:15] it's never too old to grow, right?
+[0:02:17] He is a 81-year-old,
+[0:02:19] and briefly, he is the
+world's richest man.
+[0:02:22] He started 2025 in fourth place.
+[0:02:24] It was only in July that
+he passed Mark Zuckerberg
+[0:02:27] to move into second place, even though him
+[0:02:29] and Elon Musk are vying for first place.
+[0:02:31] Ellison is also a major
+investor in Musk's company.
+[0:02:34] I'm very close friends with Elon Musk
+[0:02:35] and I'm a big investor in Tesla.
+[0:02:37] Musk quickly regained the title,
+[0:02:39] but that this happened at
+all was a sign the world had
+[0:02:43] wildly underestimated old-timer Oracle.
+[0:02:47] Several things converged
+to give Oracle the leg up
+[0:02:49] of a lifetime, and we're going
+to explain what they are.
+[0:02:52] But first, it's worth a quick
+recap of Oracle's origin story
+[0:02:56] and what it is the company actually makes.
+[0:03:01] Larry Ellison founded
+Oracle in 1977, just a year
+[0:03:04] after the emergence of Apple,
+and two years after Microsoft.
+[0:03:08] In fact, he started working
+in a government job at the
+[0:03:10] CIA, and that's how he
+got the idea for Oracle.
+[0:03:13] It was a crowded decade on
+Silicon Valley's maternity ward
+[0:03:16] with engineers in bell bottom
+jeans delivering startup
+[0:03:19] after startup to the sound of prog rock.
+[0:03:22] Although, if possible,
+Ellison wasn't listening
+[0:03:24] to anything quite as fun.
+[0:03:27] He wanted to help businesses
+organize their private
+[0:03:30] data more efficiently.
+[0:03:31] Oracle really pioneered
+the modern database.
+[0:03:35] In the early computer age,
+[0:03:37] just heaps of information
+were being created.
+[0:03:40] There needed to be a mechanism
+to keep track of all that.
+[0:03:44] Oracle's database was one
+[0:03:46] of the great cash cow
+businesses of all time,
+[0:03:49] And by 2025, Oracle's
+customers included some
+[0:03:52] of the world's best known
+companies from AT&T to Walmart,
+[0:03:56] Accenture, and Volkswagen.
+[0:03:57] Their vast databases, years,
+if not decades in the making,
+[0:04:02] think of them like the
+biggest, most sensitive
+[0:04:04] and important folders of
+spreadsheets ever known
+[0:04:06] to humankind.
+[0:04:08] They're traditionally stored in
+[0:04:09] what are called on-premises environments,
+[0:04:12] basically on servers in the offices
+[0:04:13] or facilities of the
+companies who own them.
+[0:04:16] This helps ensure privacy and compliance.
+[0:04:19] A lot of these big
+companies started using Oracle
+[0:04:22] databases back in the
+seventies or eighties
+[0:04:24] and have never stopped.
+[0:04:26] Alright, back to the present day.
+[0:04:28] What did investors
+think Oracle's plan is?
+[0:04:31] One is to sell inference AI
+models to existing clients.
+[0:04:36] The other one is to basically
+sell cloud computing
+[0:04:39] capabilities or data centers.
+[0:04:42] The traditional leaders here,
+Amazon, Microsoft, Google,
+[0:04:46] they're strained for capacity.
+[0:04:47] And so Oracle figured, God,
+we got all this cash flow,
+[0:04:51] we're printing billions off
+of our other businesses.
+[0:04:54] We're able to use that
+[0:04:56] to underwrite our growth into
+the cloud infrastructure.
+[0:05:00] But the plan surpassed
+external expectations.
+[0:05:03] Here's how much Wall Street
+thought Oracle's infrastructure
+[0:05:06] as a service business would generate over
+[0:05:08] the next few years.
+[0:05:10] But this is what Oracle
+says it now expects.
+[0:05:14] Some of these buyers
+like OpenAI have committed
+[0:05:18] to almost $300 billion in compute
+[0:05:22] that they want Oracle to
+provide them over the course
+[0:05:25] of multiple years.
+[0:05:27] Its deals like that
+[0:05:28] that have really prompted this investor
+[0:05:30] enthusiasm around Oracle.
+[0:05:31] A lot of investors
+[0:05:32] and analysts are assuming that
+if it can do deals like that,
+[0:05:36] there will be more coming down the line.
+[0:05:39] In August, Nvidia CEO
+Jensen Huang said he expected
+[0:05:42] as much as $4 trillion to be
+spent on AI infrastructure
+[0:05:45] by the end of the decade.
+[0:05:47] Which brings us to Project Stargate.
+[0:05:51] A lot of folks started paying attention
+[0:05:53] to Oracle this year when they
+appeared at the White House,
+[0:05:56] next to Sam Altman, next to the president
+[0:05:58] announcing this Project
+Stargate, this kind
+[0:06:01] of ambitious goal to
+invest hundreds of billions
+[0:06:04] of dollars in AI infrastructure.
+[0:06:06] I think this will be the most
+important project of this era.
+[0:06:10] Project Stargate is a
+multi-year investment.
+[0:06:13] It's a partnership between
+Oracle, OpenAI and SoftBank
+[0:06:17] and the goal is to build data
+centers for AI across the US.
+[0:06:21] OpenAI and Oracle have
+agreed to a cloud contract,
+[0:06:24] which is probably the single
+largest contract in history
+[0:06:27] to build out these massive
+data centers across the US.
+[0:06:31] Ground has already been
+broken here in Abilene, Texas,
+[0:06:34] but it's just the first and
+its capacity is off the scale.
+[0:06:38] Oracle and OpenAI have
+agreed to about four
+[0:06:41] and a half gigawatts of computing power.
+[0:06:43] That's about two Hoover Dams.
+[0:06:45] That's about four nuclear reactors, right?
+[0:06:47] I mean, this is a sum of electricity
+[0:06:50] that has never really been
+considered for data centers.
+[0:06:54] And so we come to another reason.
+[0:06:56] Investors are taking a
+fresh look at Oracle.
+[0:06:59] You look even better now.
+Thank you, Mr. President.
+[0:07:02] He seems to have
+developed a pretty close
+[0:07:04] relationship with the president.
+[0:07:05] Having that close
+proximity to the president
+[0:07:08] it's a big positive.
+[0:07:10] Particularly when it comes to deals
+[0:07:12] and issues of national security.
+[0:07:14] We have to backtrack till
+2020 when President Trump was
+[0:07:17] trying to ban TikTok, worrying
+about it being a national
+[0:07:20] security risk, and TikTok went to Oracle
+[0:07:22] and said, hey, we need to
+expand our infrastructure.
+[0:07:25] Oracle right now pretty
+much runs the whole
+[0:07:29] of TikTok US assets,
+[0:07:31] and they've been doing that
+over the past two plus years.
+[0:07:36] And when it comes to divesting
+from the Chinese parent
+[0:07:39] company, when it comes to
+getting your data in a format
+[0:07:42] that's gonna appease lawmakers,
+[0:07:45] Oracle has had a big part of this
+[0:07:46] And it's what led to this.
+[0:07:48] Bloomberg understands that Oracle
+[0:07:49] and Silver Lake are among the companies
+[0:07:52] that will acquire TikTok's US operations.
+[0:07:55] US operations would
+be controlled by a group
+[0:07:58] that you know, you've come
+[0:07:59] to know pretty well in Silicon
+[0:08:00] Valley-
+[0:08:01] I feel like we'll be in
+the retirement home one day
+[0:08:03] analyzing this.
+[0:08:05] Well, if we are, at least
+it'll now be grounded in a
+[0:08:07] better understanding of
+the reason for excitement
+[0:08:09] around Oracle's blow-up numbers.
+[0:08:12] But let's be real, investments
+[0:08:13] and commitments of these scales,
+[0:08:15] the risks are huge.
+[0:08:17] Among all the hyperscaler providers,
+[0:08:20] Oracle is the most leveraged
+and is bleeding the most cash.
+[0:08:24] Oracle, one of the world's
+great cash cow businesses has
+[0:08:27] gone negative free cash
+flow on this build out.
+[0:08:29] CEO Safra Katz said
+[0:08:31] that CapEx was gonna be 9
+billion higher than expected,
+[0:08:35] and investors were excited.
+[0:08:36] And the reason for that is
+[0:08:38] that the sooner they put the CapEx in,
+[0:08:41] the sooner they get these data centers up
+[0:08:42] and running, the sooner
+they can recognize revenue
+[0:08:44] from all these customers.
+[0:08:46] When you look at the
+$300 billion contract
+[0:08:49] with OpenAI, there are two questions.
+[0:08:51] Question number one is
+whether Oracle has the money,
+[0:08:55] put all the capital expenditure in
+[0:08:57] to buy all the Nvidia chips
+[0:08:59] and lease out the data centers so
+[0:09:01] that it can service OpenAI.
+[0:09:03] On the other hand, does OpenAI have the
+[0:09:05] $300 billion to shell out?
+[0:09:08] OpenAI has committed
+[0:09:09] to giving Oracle more money
+than it has in revenue today.
+[0:09:12] It's assuming that the
+current growth rates continue,
+[0:09:15] and so if anything goes wrong
+there, this is a serious risk
+[0:09:19] for Oracle.
