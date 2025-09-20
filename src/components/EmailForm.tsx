@@ -1,6 +1,6 @@
 'use client';
 
-import addToEmailList from '@/actions/addToEmailList';
+import addToEmailList from '@/actions/getTranscript';
 import { useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 
