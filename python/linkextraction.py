@@ -157,10 +157,8 @@ def getTranscript(video_url: str) -> Optional[List[Dict]]:
     else:
         print("\n❌ Failed to get or generate transcript for the video.")
         return None
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Extract or generate a timestamped transcript from a YouTube video.")
-    parser.add_argument('video_url', type=str, help='The URL of the YouTube video.')
-    args = parser.parse_args()
     
-    getTranscript(args.video_url)
+# Implement
+# Input is videobytes and start and end time, output bytes of clip video
+def getVideoClip(videobytes, start: float, end: float) -> bytes:
+    pass

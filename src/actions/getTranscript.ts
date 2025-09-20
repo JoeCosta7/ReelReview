@@ -16,7 +16,15 @@ async function getTranscript(link: string): Promise<any> {
     }
 
     const data = await response.json();
-    return data.transcript;
+    return data.transcript, data.videobytes;
+}
+
+async function chooseImportantClips(transcript: string, data.videobytes): Promise<any> {
+    timestart, timeend, summary
+
+    getClip
+
+
 }
 
 export default getTranscript;
