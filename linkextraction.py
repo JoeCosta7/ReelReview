@@ -1,150 +1,134 @@
-import argparse
-import re
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from datetime import timedelta
+import os
+import tempfile
+from typing import List, Dict
+import ffmpeg
+from sentence_transformers import SentenceTransformer, util
 
-import yt_dlp
-from youtube_transcript_api import YouTubeTranscriptApi
+from linkextraction import extract_youtube_data
+import google.generativeai as genai
 
-class YouTubeExtractor:
-    def __init__(self, download_dir: str = "downloads"):
-        """Initialize the extractor."""
-        self.download_dir = Path(download_dir)
-        self.download_dir.mkdir(exist_ok=True)
+# -------------------------------
+# STEP 0: Set Gemini API key
+# -------------------------------
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-    def extract_video_id(self, url: str) -> Optional[str]:
-        """Extract video ID from YouTube URL."""
-        patterns = [
-            r'(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([^&\n?#]+)',
-            r'youtube\.com/watch\?.*?v=([^&\n?#]+)'
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, url)
-            if match:
-                return match.group(1)
-        return None
+# -------------------------------
+# STEP 1: Generate transcript with Gemini if missing
+# -------------------------------
+def generate_transcript_gemini(video_bytes: bytes, lang="en") -> List[Dict]:
+    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+    tmp_file.write(video_bytes)
+    tmp_file.close()
+    video_path = tmp_file.name
 
-    def get_transcript(self, video_url: str, lang: str = 'en') -> Optional[List[Dict]]:
-        """Get existing YouTube transcript (no AI generation)."""
-        video_id = self.extract_video_id(video_url)
-        if not video_id:
-            print(f"❌ Could not extract video ID from URL: {video_url}")
-            return None
-
-        try:
-            ytt_api = YouTubeTranscriptApi()
-            fetched_transcript = ytt_api.fetch(video_id, languages=[lang, 'en'])
-            
-            transcript = [
-                {
-                    'text': snippet.text.strip(),
-                    'start': snippet.start,
-                    'duration': snippet.duration,
-                    'timestamp': str(timedelta(seconds=int(snippet.start)))
-                }
-                for snippet in fetched_transcript
-            ]
-            
-            print(f"✅ Found transcript with {len(transcript)} segments")
-            return transcript
-
-        except Exception as e:
-            print(f"❌ No transcript available: {e}")
-            return None
-
-    def download_video(self, video_url: str, quality: str = 'best') -> Optional[str]:
-        """Download video file and return file path."""
-        video_id = self.extract_video_id(video_url)
-        if not video_id:
-            return None
-
-        output_path = str(self.download_dir / f"{video_id}.%(ext)s")
-        
-        ydl_opts = {
-            'format': quality,
-            'outtmpl': output_path,
-            'quiet': True,
-            'no_warnings': True,
-        }
-        
-        try:
-            print(f"📥 Downloading video...")
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([video_url])
-            
-            # Find the downloaded file
-            for file_path in self.download_dir.glob(f"{video_id}.*"):
-                if file_path.is_file():
-                    print(f"✅ Video downloaded: {file_path.name}")
-                    return str(file_path)
-            
-            return None
-        except Exception as e:
-            print(f"❌ Failed to download video: {e}")
-            return None
-
-    def get_video_bytes(self, file_path: str) -> Optional[bytes]:
-        """Read video file as bytes."""
-        try:
-            with open(file_path, 'rb') as f:
-                return f.read()
-        except Exception as e:
-            print(f"❌ Failed to read video file: {e}")
-            return None
-
-    def extract_all(self, video_url: str, download_video: bool = True, quality: str = 'best') -> Tuple[Optional[List[Dict]], Optional[bytes]]:
-        """Extract both transcript and video file."""
-        transcript = self.get_transcript(video_url)
-        video_bytes = None
-        
-        if download_video:
-            video_path = self.download_video(video_url, quality)
-            if video_path:
-                video_bytes = self.get_video_bytes(video_path)
-        
-        return transcript, video_bytes
-
-def main():
-    parser = argparse.ArgumentParser(description='Extract YouTube transcript and/or download video.')
-    parser.add_argument('video_url', help='The URL of the YouTube video.')
-    parser.add_argument('--no-video', action='store_true', help='Skip video download')
-    parser.add_argument('--quality', default='best', 
-                       help='Video quality (best/worst/720p/480p/etc.)')
-    parser.add_argument('--lang', default='en', help='Transcript language code')
-    args = parser.parse_args()
-    
-    extractor = YouTubeExtractor()
-    
-    # Extract transcript and video
-    transcript, video_bytes = extractor.extract_all(
-        args.video_url, 
-        download_video=not args.no_video,
-        quality=args.quality
+    transcript_resp = genai.transcribe.create(
+        model="gemini-transcribe-v1",
+        input=video_path,
+        language=lang
     )
-    
-    # Display transcript
-    if transcript:
-        print(f"\n=== TRANSCRIPT ({len(transcript)} segments) ===\n")
-        for entry in transcript:
-            print(f"[{entry['timestamp']}] {entry['text']}")
-    
-    # Show video info
-    if video_bytes:
-        print(f"\n=== VIDEO INFO ===")
-        print(f"Video size: {len(video_bytes):,} bytes ({len(video_bytes)/1024/1024:.1f} MB)")
-        print(f"Video available as bytes in memory")
-    
-    # Summary
-    if not transcript and not video_bytes:
-        print("\n❌ Failed to extract transcript or video.")
-    elif transcript and video_bytes:
-        print(f"\n✅ Successfully extracted transcript and video!")
-    elif transcript:
-        print(f"\n✅ Successfully extracted transcript!")
-    elif video_bytes:
-        print(f"\n✅ Successfully downloaded video!")
 
+    os.remove(video_path)
+
+    segments = []
+    for seg in transcript_resp.get("segments", []):
+        segments.append({
+            "text": seg["text"],
+            "start": seg["start"],
+            "duration": seg["end"] - seg["start"]
+        })
+    return segments
+
+# -------------------------------
+# STEP 2: Generate candidate clips
+# -------------------------------
+def generate_candidate_clips(transcript: List[Dict], min_duration=5, max_duration=60) -> List[Dict]:
+    clips = []
+    for seg in transcript:
+        duration = seg["duration"]
+        if min_duration <= duration <= max_duration:
+            clip = seg.copy()
+            clip["score"] = duration  # simple base score
+            clips.append(clip)
+    return clips
+
+# -------------------------------
+# STEP 3: Batch topic filtering
+# -------------------------------
+def filter_clips_by_topic(clips: List[Dict], topics: List[str], model_name="sentence-transformers/all-MiniLM-L6-v2") -> List[Dict]:
+    if not clips or not topics:
+        return clips
+
+    model = SentenceTransformer(model_name)
+
+    # Batch encode all clips and topics
+    clip_texts = [clip['text'] for clip in clips]
+    clip_embeds = model.encode(clip_texts, convert_to_tensor=True, batch_size=32)
+    topic_embeds = model.encode(topics, convert_to_tensor=True)
+
+    # Cosine similarity: shape [num_clips, num_topics]
+    cos_scores = util.cos_sim(clip_embeds, topic_embeds)
+
+    # Take max similarity per clip
+    max_scores, _ = cos_scores.max(dim=1)
+
+    # Assign scores to clips
+    for clip, score in zip(clips, max_scores):
+        clip['score'] *= float(score)
+
+    # Sort descending by score
+    clips.sort(key=lambda x: x['score'], reverse=True)
+    return clips
+
+# -------------------------------
+# STEP 4: Extract clips from video bytes
+# -------------------------------
+def extract_clips_from_video(video_bytes: bytes, clips: List[Dict], output_dir="clips") -> List[str]:
+    os.makedirs(output_dir, exist_ok=True)
+    video_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+    video_file.write(video_bytes)
+    video_file.close()
+    video_path = video_file.name
+
+    output_paths = []
+    for i, clip in enumerate(clips):
+        out_path = os.path.join(output_dir, f"clip_{i+1}.mp4")
+        (
+            ffmpeg
+            .input(video_path, ss=clip["start"], to=clip["start"] + clip["duration"])
+            .output(out_path, codec='libx264', preset='fast', crf=23)
+            .overwrite_output()
+            .run(quiet=True)
+        )
+        output_paths.append(out_path)
+
+    os.remove(video_path)
+    return output_paths
+
+# -------------------------------
+# STEP 5: Full pipeline
+# -------------------------------
+def create_clips_from_youtube(video_url: str, topics: List[str], top_n=5) -> List[str]:
+    transcript, video_bytes = extract_youtube_data(video_url, get_video=True)
+
+    if not transcript:
+        print("No transcript found, generating with Gemini...")
+        transcript = generate_transcript_gemini(video_bytes)
+
+    candidates = generate_candidate_clips(transcript)
+    filtered = filter_clips_by_topic(candidates, topics)
+    selected = filtered[:top_n]
+
+    clip_paths = extract_clips_from_video(video_bytes, selected)
+    return clip_paths
+
+# -------------------------------
+# Example usage
+# -------------------------------
 if __name__ == "__main__":
-    main()
+    url = "https://www.youtube.com/watch?v=zsLc_Bd66CU"
+    topics = ["finance", "oracle", "stocks"]
+
+    clips = create_clips_from_youtube(url, topics, top_n=3)
+    print("Generated Clips:")
+    for path in clips:
+        print(path)
