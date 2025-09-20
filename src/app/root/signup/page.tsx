@@ -3,7 +3,7 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SignUpForm from '@/components/SignUpForm';
-import ApplicationStatusText from '@/components/ApplicationStatusText';
+
 
 export default async function Signup() {
 

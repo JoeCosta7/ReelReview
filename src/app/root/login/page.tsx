@@ -2,7 +2,7 @@
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import LogInForm from '@/components/LoginForm'
+import LoginForm from '@/components/LogInForm';
 import ApplicationStatusText from '@/components/ApplicationStatusText';
 
 export default async function Login() {
@@ -17,7 +17,7 @@ export default async function Login() {
             Log In
           </p>
           
-          <LogInForm/>
+          <LoginForm/>
         </div>
       </section>
     <Footer></Footer>

@@ -1,44 +1,55 @@
-'use server';
+'use client'
 
-import MembersTable from '@/components/MembersTable';
-import ApplyNow from '@/components/ApplyNow';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
+export default function MiddleProgressBar() {
+  const [progress, setProgress] = useState(0);
+  const processingTime = 30000; 
 
-export default async function Members() {
+  useEffect(() => {
+  const startTime = Date.now();
+
+  const animate = () => {
+    const elapsed = Date.now() - startTime;
+    const t = Math.min(elapsed / processingTime, 1);
+
+    // EaseInOutCubic: fast start, slow middle, fast end
+    const eased = t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    setProgress(eased * 100);
+
+    if (elapsed < processingTime) {
+      requestAnimationFrame(animate); // schedule next frame
+    } else {
+      // redirect when done
+      window.location.href = "/what-we-do";
+    }
+  };
+
+  requestAnimationFrame(animate);
+
+  // No cleanup needed because rAF stops when t >= 1
+}, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header Section */}
-      <section className="pt-8 pb-8 bg-white">
-        <div className="max-w-3xl mx-auto text-center px-4">
-          <h1 className="text-4xl md:text-5xl font-serif cornell-dark-brown mb-8">
-            Our Team
-          </h1>
-          
-          {/* Separator Line */}
-          <div className="w-full h-px bg-black mb-8"></div>
-          
-          <p className="text-lg md:text-xl text-gray-600 leading-relaxed font-serif">
-            Our Executive Board work diligently to facilitate and mentor all members of CCC.
-          </p>
-        </div>
-      </section>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">
+        Processing Your Reels 
+      </h1>
 
-      <MembersTable />
+      {/* Progress bar container */}
+      <div className="w-full max-w-xl h-6 bg-gray-300 rounded-full overflow-hidden">
+        {/* Progress bar */}
+        <div
+          className="h-full bg-blue-500 rounded-full transition-all duration-16 ease-linear"
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
 
-      {/* Call to Action Section */}
-      <section className="pb-16 bg-white">
-        <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-3xl md:text-4xl font-serif cornell-dark-brown mb-8">
-            Join Our Team
-          </h2>
-          <p className="text-lg text-gray-600 leading-relaxed font-serif mb-8">
-            Interested in becoming part of the LALALALA leadership? 
-            We&apos;re always looking for dedicated members to join our executive board.
-          </p>
-          <ApplyNow />
-        </div>
-      </section>
+      <p className="mt-4 text-gray-600">{Math.round(progress)}%</p>
     </div>
   );
 }
