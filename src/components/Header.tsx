@@ -17,7 +17,7 @@ export default function Header() {
       setIsMobileMenuOpen(false);
     }
   }, [isVisible]);
-
+//TODO
   const navigationLinks = [
     { name: 'Home', href: '/home' },
     { name: 'What We Do', href: '/what-we-do' },
@@ -34,97 +34,20 @@ export default function Header() {
   };
 
   return (
-    <>
-      {/* Header */}
-      <header 
-        className={`fixed top-0 left-0 right-0 z-50 bg-white transition-transform duration-300 ease-in-out ${
-          isVisible ? 'translate-y-0' : '-translate-y-full'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative flex justify-between items-center h-32">
-            {/* Logo: left on lg, centered on mobile */}
-            <div
-              className="flex items-center absolute left-1/2 -translate-x-1/2 lg:static lg:left-0 lg:translate-x-0 hover:scale-105 transition-all duration-200"
-              onClick={() => router.push('/home')}
-            >
-              <CCCLogo width={96} height={96} />
-            </div>
-
-            {/* Center Navigation - Desktop */}
-            <div className="hidden lg:flex w-max items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
-              {navigationLinks.map((link) => (
-                <button
-                  key={link.name}
-                  onClick={() => router.push(link.href)}
-                  onMouseEnter={() => setHoveredLink(link.href)}
-                  onMouseLeave={() => setHoveredLink(null)}
-                  className={`relative text-gray-800 hover:text-blue-900 transition-colors duration-200 font-serif text-lg ${
-                    isActiveLink(link.href) ? 'text-gray-900' : ''
-                  }`}
-                >
-                  {link.name}
-                  {(isActiveLink(link.href)) && (
-                    <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-black"></div>
-                  )}
-                  {(!isActiveLink(link.href) && hoveredLink === link.href) && (
-                    <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-blue-900"></div>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Right Logo */}
-            <div className="hidden lg:flex items-center">
-              <CCCLogo width={144} height={144} src="/Logo2.png" />
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="lg:hidden flex items-center justify-center w-8 h-8 absolute right-4"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle mobile menu"
-            >
-              <div className="w-6 h-6 flex flex-col justify-center space-y-1">
-                <div className={`w-full h-0.5 bg-gray-700 transition-transform duration-200 ${
-                  isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''
-                }`}></div>
-                <div className={`w-full h-0.5 bg-gray-700 transition-opacity duration-200 ${
-                  isMobileMenuOpen ? 'opacity-0' : ''
-                }`}></div>
-                <div className={`w-full h-0.5 bg-gray-700 transition-transform duration-200 ${
-                  isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''
-                }`}></div>
-              </div>
-            </button>
+    <header className="flex justify-between items-center p-6 max-w-7xl mx-auto w-full">
+        <div className="flex items-center">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-xl">R</span>
           </div>
+          <span className="ml-3 text-2xl font-bold text-slate-800">ReelReview</span>
+        </div>
 
-          {/* Mobile Navigation Menu */}
-          <div className={`lg:hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'
-          } overflow-hidden`}>
-            <div className="py-4 space-y-2 border-t border-gray-200">
-              {navigationLinks.map((link) => (
-                <button
-                  key={link.name}
-                  onClick={() => {
-                    router.push(link.href);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`block w-full text-left px-4 py-2 text-gray-800 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200 font-serif text-base ${
-                    isActiveLink(link.href) ? 'text-gray-900 bg-gray-50' : ''
-                  }`}
-                >
-                  {link.name}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="flex items-center gap-3">
+          {/*<Button variant="outline" className="text-slate-600 hover:text-slate-800 font-medium">
+            Log In
+          </Button>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 shadow-sm">Register</Button>*/}
         </div>
       </header>
-
-      {/* Spacer to prevent content from going under fixed header */}
-      <div className="h-32 md:h-32"></div>
-    </>
   );
 }
