@@ -57,8 +57,7 @@ async function getSummary(transcript: any): Promise<any> {
             required: ["topics"],
             propertyOrdering: ["topics"]
             },
-            temperature: 0,
-            maxOutputTokens: 2048
+            temperature: 0
         }
     });
     return JSON.parse(response.text || '')?.topics || [];
@@ -74,7 +73,7 @@ async function chooseImportantClips(transcript: any, topics: any): Promise<any> 
     Topics: ${JSON.stringify(topics)}
     `;
     const response = await client.models.generateContent({
-        model: 'gemini-2.0-flash-lite',
+        model: 'gemini-2.0-flash',
         contents: [{ role: 'user', parts: [{text: prompt}] }],
         config: {
             responseMimeType: "application/json",
@@ -99,8 +98,7 @@ async function chooseImportantClips(transcript: any, topics: any): Promise<any> 
                 required: ["clips"],
                 propertyOrdering: ["clips"]
             },
-            temperature: 0.5,
-            maxOutputTokens: 1024
+            temperature: 0.5
         }
     });
     return JSON.parse(response.text || '')?.clips || [];
