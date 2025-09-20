@@ -1,6 +1,6 @@
 'use client';
 
-import addToEmailList from '@/actions/addToEmailList';
+//import addToEmailList from '@/actions/addToEmailList';
 import { useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 
@@ -8,15 +8,15 @@ export default function EmailForm() {
   const [email, setEmail] = useState('');
   const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
 
-  const handleAddToEmailList = async () => {
+ /* const handleAddToEmailList = async () => {
     const emailValue = email;
-    const success = await addToEmailList(emailValue);
+    //const success = await addToEmailList(emailValue);
     if (success) {
       setIsSuccess(true);
     } else {
       setIsSuccess(false);
     }
-  }
+  }*/
 
   return (
     <div className="max-w-md mx-auto">

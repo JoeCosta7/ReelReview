@@ -4,6 +4,7 @@ import { useScrollDirection } from '@/hooks/useScrollDirection';
 import CCCLogo from './CCCLogo';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Button } from '@/components/Button';
 
 export default function Header() {
   const { isVisible } = useScrollDirection();
@@ -20,8 +21,8 @@ export default function Header() {
 //TODO
   const navigationLinks = [
     { name: 'Home', href: '/home' },
-    { name: 'What We Do', href: '/what-we-do' },
-    { name: 'Executive Board', href: '/members' },
+    { name: 'Login', href: '/login' },
+    { name: 'Register', href: '/register' },
     { name: 'Resources', href: '/gallery' },
     { name: 'Apply', href: '/apply' },
   ];
@@ -43,10 +44,19 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/*<Button variant="outline" className="text-slate-600 hover:text-slate-800 font-medium">
+          <Button
+            variant="outline"
+            className="text-slate-600 hover:text-slate-800 font-medium"
+            onClick={() => router.push('/login')}
+          >
             Log In
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 shadow-sm">Register</Button>*/}
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 shadow-sm"
+            onClick={() => router.push('/signup')}
+          >
+            Register
+          </Button>
         </div>
       </header>
   );

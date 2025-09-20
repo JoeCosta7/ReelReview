@@ -36,15 +36,15 @@ export function SessionProvider({ children }: SessionProviderProps) {
     if (storedMembers) {
       setMembers(JSON.parse(storedMembers));
     }
-    loadMembers();
-    loadApplicationStatus();
+    //loadMembers();
+    //loadApplicationStatus();
   }, []);
 
   useEffect(() => {
     localStorage.setItem('members', JSON.stringify(members));
   }, [members]);
 
-  const createLocalImageUrl = async (url: string): Promise<{ success: boolean; url?: string; error?: string }> => {
+  /*const createLocalImageUrl = async (url: string): Promise<{ success: boolean; url?: string; error?: string }> => {
     try {
       const result = await getImageBlob(url);
       
@@ -67,11 +67,11 @@ export function SessionProvider({ children }: SessionProviderProps) {
         error: 'Failed to create local URL'
       };
     }
-  };
+  }; 
 
   const loadMembers = async () => {
     try {
-      const membersData = await getMembers();
+      //const membersData = await getMembers();
       const membersWithImages = await Promise.all(
         membersData.map(async (member) => {
           const imageResult = await createLocalImageUrl(member.image);
@@ -91,6 +91,11 @@ export function SessionProvider({ children }: SessionProviderProps) {
     } catch (error) {
       console.error('Error loading application status:', error);
     }
+  }; */
+
+  // Provide a no-op loadMembers function for now to satisfy the interface
+  const loadMembers = async () => {
+    // Placeholder: implement actual logic or uncomment the real function above
   };
 
   return (
@@ -111,4 +116,5 @@ export function useSession() {
     throw new Error('useSession must be used within a SessionProvider');
   }
   return context;
-}
+} 
+

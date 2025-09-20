@@ -48,14 +48,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider>
-            <Header></Header>
             <div className="min-h-[100vh] flex flex-col">
               <main className="flex-1">
                 {children}
               </main>
             </div>
-            {//<Footer></Footer>
-            }
           </SessionProvider>
         </ThemeProvider>
       </body>

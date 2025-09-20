@@ -2,6 +2,8 @@
 
 import { Upload, Link, ArrowUp } from "lucide-react"
 import { Button } from "@/components/Button"
+import Header from "@/components/Header"
+import Footer from "@/components/Footer"
 import { useState } from "react"
 
 export default function ReelReviewPage() {
@@ -9,6 +11,7 @@ export default function ReelReviewPage() {
   const [linkInput, setLinkInput] = useState("")
 
   return (
+    <div><Header></Header>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col origin-top">
       <main className="flex-1 flex flex-col items-center justify-center px-8 py-12 max-w-6xl mx-auto w-full text-center">
         <div className="mb-12">
@@ -103,6 +106,8 @@ export default function ReelReviewPage() {
           )}
         </div>
       </main>
+    </div>
+    <Footer></Footer>
     </div>
   )
 }
