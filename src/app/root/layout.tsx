@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LALALALALA",
-  description: "LALALALALA is LALALALALA.",
+  title: "ReelReviews",
+  description: "bigredhacks",
   keywords: ["bigredhacks", "project"],
   authors: [{ name: "LALALALALA" }],
 };
@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="src\app\root\favicon.ico" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -48,12 +48,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider>
-            <Header />
             <div className="min-h-[100vh] flex flex-col">
               <main className="flex-1">
                 {children}
               </main>
-              <Footer />
             </div>
           </SessionProvider>
         </ThemeProvider>
