@@ -1,7 +1,7 @@
 'use client';
 
 import { useScrollDirection } from '@/hooks/useScrollDirection';
-import CCCLogo from './CCCLogo';
+import CCCLogo from './Logo';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/Button';
@@ -38,9 +38,9 @@ export default function Header() {
     <header className="flex justify-between items-center p-6 max-w-7xl mx-auto w-full">
         <div className="flex items-center">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-xl">R</span>
+            <a href="/home" className="text-white font-bold text-xl">R</a>
           </div>
-          <span className="ml-3 text-2xl font-bold text-slate-800">ReelReview</span>
+          <span className="ml-3 text-2xl font-bold text-slate-800">Reel Review</span>
         </div>
 
         <div className="flex items-center gap-3">

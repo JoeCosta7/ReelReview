@@ -8,20 +8,20 @@ const nextConfig: NextConfig = {
         destination: '/root/home',
       },
       {
-        source: '/members',
-        destination: '/root/members',
+        source: '/summary',
+        destination: '/root/summary',
       },
       {
-        source: '/gallery',
-        destination: '/root/gallery',
+        source: '/login',
+        destination: '/root/login',
       },
       {
-        source: '/what-we-do',
-        destination: '/root/what-we-do',
+        source: '/signup',
+        destination: '/root/signup',
       },
       {
-        source: '/apply',
-        destination: '/root/apply',
+        source: '/loading',
+        destination: '/root/loading',
       },
     ];
   },

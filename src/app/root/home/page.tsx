@@ -100,7 +100,7 @@ export default function ReelReviewPage() {
         <main className="flex-1 flex flex-col items-center justify-center px-8 py-12 max-w-6xl mx-auto w-full text-center">
         <div className="mb-12">
           <span className="text-7xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6 tracking-tight">
-          ReelReview
+          Reel Review
           </span>
           <p className="text-xl  text-slate-600 font-bold max-w-2xl mx-auto leading-relaxed">
             Transform your lectures into engaging, bite-sized learning moments with AI-powered video processing
@@ -380,7 +380,7 @@ export default function ReelReviewPage() {
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white">
                 <h3 className="text-2xl font-bold mb-4">Ready to Transform Your Content?</h3>
                 <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-                  Join thousands of educators and content creators who are already using ReelReview to make their
+                  Join those who are already using ReelReview to make their
                   lectures more engaging and accessible.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -400,10 +400,11 @@ export default function ReelReviewPage() {
               </div>
             </div>
           </div>
-        <Footer />
+        
       </div>
       </main>
     </div>
+    <Footer />
     </div>
   )
 }
