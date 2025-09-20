@@ -154,6 +154,43 @@ def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> byte
         clip_bytes = f.read()
     return clip_bytes
 
+def transcript_to_srt(transcript: List[Dict], srt_path: str):
+    def seconds_to_srt_time(sec):
+        h = int(sec // 3600)
+        m = int((sec % 3600) // 60)
+        s = int(sec % 60)
+        ms = int((sec - int(sec)) * 1000)
+        return f"{h:02}:{m:02}:{s:02},{ms:03}"
+
+    with open(srt_path, 'w', encoding='utf-8') as f:
+        for idx, entry in enumerate(transcript, 1):
+            start = seconds_to_srt_time(entry['start'])
+            end = seconds_to_srt_time(entry['start'] + entry['duration'])
+            text = entry['text'].strip()
+            f.write(f"{idx}\n{start} --> {end}\n{text}\n\n")
+
+import subprocess
+
+def pad_and_burn_subtitles(input_clip: str, srt_file: str, output_file: str = "clip.mp4"):
+    filter_str = (
+        "scale='min(1080,iw*1920/ih)':'min(1920,ih*1080/iw)':force_original_aspect_ratio=decrease,"
+        "pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black,"
+        f"subtitles={srt_file}"
+    )
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", input_clip,
+        "-vf", filter_str,
+        "-c:a", "copy",
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        output_file
+    ]
+    subprocess.run(cmd, check=True)
+
+
+
+
 if __name__ == "__main__":
     test_url = "https://www.youtube.com/watch?v=zsLc_Bd66CU"
 
@@ -178,9 +215,18 @@ if __name__ == "__main__":
 
         # Clip 10–20s
         print("\n--- Testing getVideoClip ---")
-        clip_bytes = getVideoClip(video_bytes, start_time=100, end_time=130)
-        with open("clip.mp4", "wb") as f:
+        clip_bytes = getVideoClip(video_bytes, start_time=10, end_time=20)
+        with open("raw_clip.mp4", "wb") as f:
             f.write(clip_bytes)
-        print("Clip written to clip.mp4")
+        print("Clip written to raw_clip.mp4")
+
+        # Generate SRT subtitle file from transcript
+        srt_path = "clip_subtitles.srt"
+        transcript_to_srt(transcript, srt_path)
+        print("Subtitle file written to clip_subtitles.srt")
+
+        # Pad and burn subtitles (replace raw_clip.mp4 with final clip.mp4)
+        pad_and_burn_subtitles("raw_clip.mp4", srt_path, "clip.mp4")
+        print("Final vertical, subtitled clip written to clip.mp4")
     else:
         print("❌ Transcript/video fetch failed")
