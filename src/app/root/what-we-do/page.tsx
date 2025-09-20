@@ -35,6 +35,7 @@ export default async function WhatWeDo() {
               width: "30dvw",
               height: "85dvh",
               padding: "8px",
+              position: "relative",
             }}
           >
             <VideoViewer
@@ -43,14 +44,20 @@ export default async function WhatWeDo() {
             />
           </div>
           <div className="w-[60dvw] flex flex-col items-center justify-center">
-            <div className="w-full flex justify-center items-center mb-8">
+            <div className="w-full flex justify-center items-center mb-4">
               <span className="text-4xl font-bold text-slate-800 text-center">
                 Summary from the lecture
               </span>
             </div>
-            <div className="w-full flex flex-col items-start gap-4 ml-20">
+            <div
+              className="w-full flex flex-wrap items-start gap-4 ml-20"
+              style={{
+                maxHeight: "80dvh",
+                overflowY: "auto",
+              }}
+            >
               <BulletPoint
-                videoSrc="https://www.youtube.com/embed/Q_nme5l_h1U"
+                thumbSrc="https://img.youtube.com/vi/YRFCGzhhHKw/default.jpg"
                 title={"Why ReelReview?"}
                 buttonText={"Watch"}
                 onButtonClick={() => {
@@ -59,7 +66,7 @@ export default async function WhatWeDo() {
                 }}
               />
               <BulletPoint
-                videoSrc="https://www.youtube.com/embed/OYtr9uxKJJg"
+                thumbSrc="https://www.youtube.com/embed/OYtr9uxKJJg"
                 title={"How YouTubers overreact to everything"}
                 buttonText={"Watch"}
                 onButtonClick={() => {
@@ -68,7 +75,25 @@ export default async function WhatWeDo() {
                 }}
               />
               <BulletPoint
-                videoSrc="https://www.youtube.com/embed/rksDFrc93X0"
+                thumbSrc="https://www.youtube.com/embed/rksDFrc93X0"
+                title={"Steph Curry is goated"}
+                buttonText={"Watch"}
+                onButtonClick={() => {
+                  iframeRef.current.src =
+                    "https://www.youtube.com/embed/3HKEp7IF4jY";
+                }}
+              />
+              <BulletPoint
+                thumbSrc="https://www.youtube.com/embed/rksDFrc93X0"
+                title={"Steph Curry is goated"}
+                buttonText={"Watch"}
+                onButtonClick={() => {
+                  iframeRef.current.src =
+                    "https://www.youtube.com/embed/3HKEp7IF4jY";
+                }}
+              />
+              <BulletPoint
+                thumbSrc="https://www.youtube.com/embed/rksDFrc93X0"
                 title={"Steph Curry is goated"}
                 buttonText={"Watch"}
                 onButtonClick={() => {
