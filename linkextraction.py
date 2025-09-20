@@ -7,6 +7,10 @@ from sentence_transformers import SentenceTransformer, util
 from linkextraction import extract_youtube_data
 import google.generativeai as genai
 
+from datetime import timedelta
+import subprocess
+
+
 # -------------------------------
 # STEP 0: Set Gemini API key
 # -------------------------------
