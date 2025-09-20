@@ -3,3 +3,4 @@ requests==2.31.0
 youtube-transcript-api
 openai-whisper
 yt-dlp
+ffmpeg-python
