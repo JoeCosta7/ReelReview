@@ -1,30 +1,14 @@
 import os
 import logging
-import argparse
 from pathlib import Path
 from typing import Dict, List, Optional
 from datetime import timedelta
-
-# --- Installation Check ---
-try:
-    import pkg_resources
-    yt_api_version = pkg_resources.get_distribution("youtube-transcript-api").version
-    whisper_version = pkg_resources.get_distribution("openai-whisper").version
-    yt_dlp_version = pkg_resources.get_distribution("yt-dlp").version
-    print(f"--- Library Versions ---")
-    print(f"youtube-transcript-api: {yt_api_version}")
-    print(f"openai-whisper: {whisper_version}")
-    print(f"yt-dlp: {yt_dlp_version}")
-    print(f"------------------------")
-except pkg_resources.DistributionNotFound as e:
-    print(f"ERROR: A required library is not installed: {e}")
-    print("Please run: pip install youtube-transcript-api openai-whisper yt-dlp")
-    exit()
-# --------------------------
-
+import ffmpeg
+import tempfile
 import yt_dlp
 from youtube_transcript_api import YouTubeTranscriptApi
 import whisper
+import requests
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 class VideoExtractor:
     def __init__(self, download_dir: str = "downloads"):
-        """Initialize the VideoExtractor."""
         self.download_dir = Path(download_dir)
         self.download_dir.mkdir(exist_ok=True)
         logger.info("Loading Whisper model ('base'). This may take a moment...")
@@ -40,7 +23,6 @@ class VideoExtractor:
         logger.info("Whisper model loaded.")
 
     def extract_video_id(self, url: str) -> Optional[str]:
-        """Extract video ID from YouTube URL."""
         if "youtube.com/watch?v=" in url:
             return url.split("v=")[1].split("&")[0]
         elif "youtu.be/" in url:
@@ -48,7 +30,6 @@ class VideoExtractor:
         return None
 
     def download_audio(self, video_url: str) -> Optional[str]:
-        """Download audio from a YouTube video and return the file path."""
         video_id = self.extract_video_id(video_url)
         if not video_id:
             return None
@@ -72,14 +53,12 @@ class VideoExtractor:
             return None
 
     def generate_transcript_with_whisper(self, audio_path: str) -> Optional[List[Dict]]:
-        """Generate a timestamped transcript from an audio file using Whisper."""
         if not Path(audio_path).exists():
             logger.error(f"Audio file not found: {audio_path}")
             return None
         try:
             logger.info(f"Generating transcript with Whisper for: {audio_path}")
             result = self.whisper_model.transcribe(audio_path, verbose=False)
-            
             formatted_transcript = []
             for segment in result.get("segments", []):
                 start = segment['start']
@@ -90,7 +69,6 @@ class VideoExtractor:
                     'timestamp': self._seconds_to_timestamp(start)
                 }
                 formatted_transcript.append(formatted_entry)
-            
             logger.info(f"Whisper generated {len(formatted_transcript)} transcript segments.")
             return formatted_transcript
         except Exception as e:
@@ -98,7 +76,6 @@ class VideoExtractor:
             return None
 
     def get_timestamped_transcript(self, video_url: str, lang: str = 'en') -> Optional[List[Dict]]:
-        """Get or generate a timestamped transcript."""
         video_id = self.extract_video_id(video_url)
         if not video_id:
             logger.error(f"Could not extract video ID from URL: {video_url}")
@@ -106,13 +83,8 @@ class VideoExtractor:
 
         try:
             logger.info(f"Attempting to fetch existing transcript for video ID: {video_id}")
-            # Correct usage for youtube-transcript-api v1.2.2
             ytt_api = YouTubeTranscriptApi()
-            logger.info("YouTubeTranscriptApi instance created successfully")
-            
             fetched_transcript = ytt_api.fetch(video_id, languages=[lang, 'en'])
-            logger.info(f"Transcript fetched successfully, type: {type(fetched_transcript)}")
-            
             formatted = []
             for snippet in fetched_transcript:
                 formatted.append({
@@ -126,39 +98,89 @@ class VideoExtractor:
 
         except Exception as e:
             logger.error(f"Failed to fetch transcript: {type(e).__name__}: {e}")
-            # Check for specific transcript-related exceptions
             error_str = str(e).lower()
             if 'transcript' in error_str and ('disabled' in error_str or 'not found' in error_str):
-                logger.warning("No existing transcript found. Attempting to generate one with Whisper.")
+                logger.warning("No existing transcript found. Attempting Whisper.")
                 audio_file = self.download_audio(video_url)
                 if audio_file:
                     transcript = self.generate_transcript_with_whisper(audio_file)
                     try:
                         os.remove(audio_file)
-                        logger.info(f"Cleaned up audio file: {audio_file}")
-                    except OSError as clean_error:
-                        logger.error(f"Error removing audio file {audio_file}: {clean_error}")
+                    except OSError:
+                        pass
                     return transcript
                 return None
             else:
-                logger.error(f"An unexpected error occurred: {e}")
+                logger.error(f"Unexpected error: {e}")
                 return None
 
     def _seconds_to_timestamp(self, seconds: float) -> str:
-        """Convert seconds to HH:MM:SS format."""
         return str(timedelta(seconds=int(seconds)))
 
-def getTranscript(video_url: str) -> Optional[List[Dict]]:    
+def getTranscript(video_url: str) -> Optional[Dict]:    
     extractor = VideoExtractor()
     transcript = extractor.get_timestamped_transcript(video_url=video_url)
 
+    video_bytes = None
+    try:
+        ydl_opts = {'format': 'mp4/best', 'quiet': True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+            video_url_direct = info['url']
+        resp = requests.get(video_url_direct, stream=True)
+        resp.raise_for_status()
+        video_bytes = resp.content
+        logger.info(f"Fetched video into memory: {len(video_bytes)} bytes")
+    except Exception as e:
+        logger.error(f"Failed to fetch video bytes: {e}")
+
     if transcript:
-        return transcript
+        return {"transcript": transcript, "video_bytes": video_bytes}
     else:
-        print("\n❌ Failed to get or generate transcript for the video.")
+        print("\n❌ Failed to get or generate transcript.")
         return None
-    
-# Implement
-# Input is videobytes and start and end time, output bytes of clip video
-def getVideoClip(videobytes, start: float, end: float) -> bytes:
-    pass
+
+def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> bytes:
+    """Clip video into proper MP4 using temp files (fully playable)."""
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as in_file:
+        in_file.write(video_bytes)
+        in_file.flush()
+        in_path = in_file.name
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as out_file:
+        out_path = out_file.name
+
+    ffmpeg.input(in_path, ss=start_time, to=end_time).output(out_path, c="copy").overwrite_output().run(quiet=True)
+    with open(out_path, "rb") as f:
+        clip_bytes = f.read()
+    return clip_bytes
+
+if __name__ == "__main__":
+    test_url = "https://www.youtube.com/watch?v=zsLc_Bd66CU"
+
+    print("\n--- Testing getTranscript ---")
+    data = getTranscript(test_url)
+    if data:
+        transcript = data["transcript"]
+        video_bytes = data["video_bytes"]
+        print(f"Transcript segments: {len(transcript)}")
+        print(f"Video size: {len(video_bytes)} bytes")
+
+        # Save transcript
+        with open("transcript.txt", "w", encoding="utf-8") as f:
+            for entry in transcript:
+                f.write(f"[{entry['timestamp']}] {entry['text']}\n")
+        print("Transcript written to transcript.txt")
+
+        # Save full video
+        with open("full_video.mp4", "wb") as f:
+            f.write(video_bytes)
+        print("Full video written to full_video.mp4")
+
+        # Clip 10–20s
+        print("\n--- Testing getVideoClip ---")
+        clip_bytes = getVideoClip(video_bytes, start_time=100, end_time=130)
+        with open("clip.mp4", "wb") as f:
+            f.write(clip_bytes)
+        print("Clip written to clip.mp4")
+    else:
+        print("❌ Transcript/video fetch failed")
