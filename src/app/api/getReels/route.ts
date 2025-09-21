@@ -12,8 +12,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get transcript and video bytes
-    const [transcript, video_bytes] = await getTranscript(link);
+    // Get transcript and direct video URL
+    const [transcript, direct_video_url] = await getTranscript(link);
     
     if (!transcript) {
       return NextResponse.json(
@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
     // Choose important clips based on topics
     const clips = await chooseImportantClips(transcript, topics);
     
-    // Get actual clip data with bytes
-    const clipsWithBytes = await getClips(clips, video_bytes);
+    // Get actual clip data using efficient streaming
+    const clipsWithBytes = await getClips(clips, direct_video_url);
 
     return NextResponse.json({
       success: true,

@@ -83,21 +83,19 @@ def getTranscript(video_url: str) -> Optional[Dict]:
     extractor = VideoExtractor()
     transcript = extractor.get_timestamped_transcript_from_url(video_url=video_url)
 
-    video_bytes = None
+    # Instead of downloading the entire video, just get the direct URL for later use
+    direct_video_url = None
     try:
         ydl_opts = {'format': 'mp4/best', 'quiet': True}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
-            video_url_direct = info['url']
-        resp = requests.get(video_url_direct, stream=True)
-        resp.raise_for_status()
-        video_bytes = resp.content
-        logger.info(f"Fetched video into memory: {len(video_bytes)} bytes")
+            direct_video_url = info['url']
+        logger.info(f"Retrieved direct video URL for efficient clip processing")
     except Exception as e:
-        logger.error(f"Failed to fetch video bytes: {e}")
+        logger.error(f"Failed to get direct video URL: {e}")
 
     if transcript:
-        return {"transcript": transcript, "video_bytes": video_bytes}
+        return {"transcript": transcript, "direct_video_url": direct_video_url}
     else:
         print("\n❌ Failed to get or generate transcript.")
         return None
@@ -261,6 +259,60 @@ def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, e
     except Exception as e:
         logger.error(f"Exception during processing: {e}")
         return False
+
+def getVideoClipFromUrl(direct_video_url: str, start_time: float, end_time: float) -> bytes:
+    """
+    Efficient clip generation: streams only the required portion of the video.
+    
+    Args:
+        direct_video_url: Direct URL to the video file
+        start_time: Start time in seconds
+        end_time: End time in seconds
+        
+    Returns:
+        bytes: Video clip bytes, or empty bytes on failure
+    """
+    logger.info(f"Processing video clip from {start_time}s to {end_time}s using direct URL")
+    
+    clip_path = tempfile.mktemp(suffix=".mp4")
+    
+    try:
+        # Use ffmpeg to directly stream and clip from the URL
+        logger.info("Streaming and clipping video directly from URL...")
+        (
+            ffmpeg
+            .input(direct_video_url, ss=start_time, t=end_time-start_time)
+            .output(
+                clip_path, 
+                vcodec='libx264',
+                acodec='aac',
+                preset='fast',
+                crf=23
+            )
+            .overwrite_output()
+            .run(quiet=True, capture_stdout=True)
+        )
+        
+        if os.path.exists(clip_path):
+            with open(clip_path, "rb") as f:
+                clip_bytes = f.read()
+            logger.info(f"Successfully created video clip: {len(clip_bytes)} bytes")
+            return clip_bytes
+        else:
+            logger.error("Clip file was not created")
+            return b""
+                
+    except Exception as e:
+        logger.error(f"Error processing video clip: {e}")
+        return b""
+        
+    finally:
+        # Cleanup temporary file
+        try:
+            if os.path.exists(clip_path):
+                os.unlink(clip_path)
+        except:
+            pass
 
 def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> bytes:
     """

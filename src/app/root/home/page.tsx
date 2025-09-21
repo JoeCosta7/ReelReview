@@ -1,9 +1,10 @@
 "use client"
 
-import { Link, ArrowUp, CheckCircle, XCircle } from "lucide-react"
+import { Link, ArrowUp, CheckCircle, XCircle, Play, ArrowRight } from "lucide-react"
 import { Button } from "@/components/Button"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import ReelCard from "@/components/ReelCard"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/app/contexts/SessionContext"
@@ -14,6 +15,76 @@ export default function ReelReviewPage() {
   const [linkValidation, setLinkValidation] = useState<{ isValid: boolean; message: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const router = useRouter()
+
+  // Community reels data
+  const communityReels = [
+    {
+      videoSrc: "/introduction_to_rectangular_matrices_and_multiple_solutions.mp4",
+      title: "Introduction to Rectangular Matrices and Multiple Solutions",
+      author: "Narayan Topalli",
+      authorInitials: "NT",
+      timeAgo: "2 hours ago",
+      category: "Linear Algebra",
+      categoryEmoji: "📚",
+      gradientFrom: "from-blue-50",
+      gradientTo: "to-indigo-100"
+    },
+    {
+      videoSrc: "/michel_goemans_on_gilbert_strang_s_extraordinary_mit_career.mp4",
+      title: "Michel Goemans on Gilbert Strang's Extraordinary MIT Career",
+      author: "Jon Jones",
+      authorInitials: "JJ",
+      timeAgo: "5 hours ago",
+      category: "MIT",
+      categoryEmoji: "🎓",
+      gradientFrom: "from-green-50",
+      gradientTo: "to-emerald-100"
+    },
+    {
+      videoSrc: "/pavel_grinfeld_on_the_importance_of_linear_algebra_and_strang_s_legacy.mp4",
+      title: "Pavel Grinfeld on the Importance of Linear Algebra and Strang's Legacy",
+      author: "Aaron Judge",
+      authorInitials: "AJ",
+      timeAgo: "1 day ago",
+      category: "Linear Algebra",
+      categoryEmoji: "📚",
+      gradientFrom: "from-purple-50",
+      gradientTo: "to-pink-100"
+    },
+    {
+      videoSrc: "/row_rank_and_column_rank_theorem.mp4",
+      title: "Row Rank and Column Rank Theorem",
+      author: "Lionel Messi",
+      authorInitials: "LM",
+      timeAgo: "3 days ago",
+      category: "Linear Algebra",
+      categoryEmoji: "📚",
+      gradientFrom: "from-orange-50",
+      gradientTo: "to-red-100"
+    },
+    {
+      videoSrc: "/michel_goemans_on_gilbert_strang_s_unique_teaching_style.mp4",
+      title: "Michel Goemans on Gilbert Strang's Unique Teaching Style",
+      author: "Sarah Chen",
+      authorInitials: "SC",
+      timeAgo: "1 week ago",
+      category: "Teaching",
+      categoryEmoji: "👨‍🏫",
+      gradientFrom: "from-cyan-50",
+      gradientTo: "to-blue-100"
+    },
+    {
+      videoSrc: "/pavel_grinfeld_s_personal_reflection_on_gilbert_strang_s_influence.mp4",
+      title: "Pavel Grinfeld's Personal Reflection on Gilbert Strang's Influence",
+      author: "Michael Rodriguez",
+      authorInitials: "MR",
+      timeAgo: "2 weeks ago",
+      category: "Personal Stories",
+      categoryEmoji: "💭",
+      gradientFrom: "from-yellow-50",
+      gradientTo: "to-orange-100"
+    }
+  ]
 
   const validateLink = (url: string) => {
     if (!url.trim()) {
@@ -51,15 +122,47 @@ export default function ReelReviewPage() {
   }
 
 
-  const handleSubmit = async () => {
-    if (!linkInput.trim() || !linkValidation?.isValid) {
+  const handleReelLecture = async (videoUrl: string) => {
+    setLinkInput(videoUrl)
+    validateLink(videoUrl)
+    
+    // Wait a moment for validation to complete
+    setTimeout(async () => {
+      await handleSubmit(videoUrl)
+    }, 100)
+  }
+
+  const handleSubmit = async (videoUrl?: string) => {
+    const urlToProcess = videoUrl || linkInput
+    if (!urlToProcess.trim()) {
+      return
+    }
+
+    // If we have a videoUrl, we need to validate it first
+    if (videoUrl) {
+      try {
+        const urlObj = new URL(videoUrl)
+        const domain = urlObj.hostname.toLowerCase()
+        const supportedPlatforms = [
+          "youtube.com", "www.youtube.com", "youtu.be"
+        ]
+        
+        if (!supportedPlatforms.some((platform) => domain.includes(platform))) {
+          setLinkValidation({ isValid: false, message: "Please enter a valid video platform URL" })
+          return
+        }
+      } catch {
+        setLinkValidation({ isValid: false, message: "Please enter a valid URL" })
+        return
+      }
+    } else if (!linkValidation?.isValid) {
       return
     }
 
     setIsProcessing(true)
 
     try {
-      const link = linkInput.split("&list=")[0]
+      const link = urlToProcess.split("&list=")[0]
 
       setVideoLink(link)
 
@@ -121,40 +224,16 @@ export default function ReelReviewPage() {
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col origin-top mt-16">
         <main className="flex-1 flex flex-col items-center justify-center px-8 py-12 max-w-6xl mx-auto w-full text-center">
-        <div className="mb-12">
-          <span className="text-7xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6 tracking-tight">
+        <div className="mb-6">
+          <span className="text-7xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
           Reel Review
           </span>
-          <p className="text-xl  text-slate-600 font-bold max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl mt-4 text-slate-600 font-bold max-w-2xl mx-auto leading-relaxed">
             Transform your lectures into engaging, bite-sized learning moments with AI-powered video processing
           </p>
         </div>
 
-        <div className="max-w-7xl mb-12">
-          <div className="flex items-center justify-center gap-4 text-base flex-wrap">
-            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
-              <span className="text-xl mr-2">📹</span>
-              <span className="font-semibold text-slate-700">Upload lecture</span>
-            </div>
-            <div className="text-blue-500 text-xl font-bold">→</div>
-            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
-              <span className="text-xl mr-2">📁</span>
-              <span className="font-semibold text-slate-700">We transcribe</span>
-            </div>
-            <div className="text-blue-500 text-xl font-bold">→</div>
-            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
-              <span className="text-xl mr-2">✂️</span>
-              <span className="font-semibold text-slate-700">AI finds moments</span>
-            </div>
-            <div className="text-blue-500 text-xl font-bold">→</div>
-            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
-              <span className="text-xl mr-2">📱</span>
-              <span className="font-semibold text-slate-700">Get reels</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center gap-8 w-full">
+        <div className="flex flex-col items-center w-full">
           <div className="flex flex-col items-center gap-6 w-full max-w-2xl">
             <div className="w-full bg-white rounded-xl p-6 shadow-lg border border-slate-200">
               <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center">Paste Your Video Link</h3>
@@ -187,7 +266,7 @@ export default function ReelReviewPage() {
                   )}
                 </div>
                 <Button
-                  onClick={handleSubmit}
+                  onClick={() => handleSubmit()}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-4 font-medium shadow-sm rounded-lg text-base disabled:opacity-50"
                   disabled={!linkInput.trim() || !linkValidation?.isValid || isProcessing}
                 >
@@ -210,7 +289,41 @@ export default function ReelReviewPage() {
               </p>
             </div>
           </div>
-        <div className="mt-16 w-full max-w-6xl">
+
+          <div className="text-center mt-12">
+            <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-xl mb-12 max-w-4xl mx-auto">
+              <div className="flex items-center justify-center mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">R</span>
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900">
+                    Reels From The Community
+                  </h2>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {communityReels.map((reel, index) => (
+                  <ReelCard
+                    key={index}
+                    videoSrc={reel.videoSrc}
+                    title={reel.title}
+                    author={reel.author}
+                    authorInitials={reel.authorInitials}
+                    timeAgo={reel.timeAgo}
+                    category={reel.category}
+                    categoryEmoji={reel.categoryEmoji}
+                    gradientFrom={reel.gradientFrom}
+                    gradientTo={reel.gradientTo}
+                    onPlay={() => handleReelLecture(reel.videoSrc)}
+                  />
+                ))}
+              </div>
+            </div>
+        </div>
+
+        <div className="w-full max-w-6xl mt-2">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-slate-800 mb-4">See the Magic in Action</h2>
               <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
@@ -290,12 +403,12 @@ export default function ReelReviewPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 flex-1 flex flex-col">
+                <div className="space-y-4 flex-1 flex flex-col">
                   {[
-                    { title: "Newton's Laws Explained", duration: "45s", views: "2.3K" },
-                    { title: "Thermodynamics Principles", duration: "38s", views: "1.8K" },
-                    { title: "Quantum Mechanics Basics", duration: "52s", views: "3.1K" },
-                    { title: "Gauss' Law Simplified", duration: "41s", views: "2.7K" },
+                    { title: "Newton's Laws Explained", duration: "45s" },
+                    { title: "Thermodynamics Principles", duration: "38s" },
+                    { title: "Quantum Mechanics Basics", duration: "52s" },
+                    { title: "Gauss' Law Simplified", duration: "41s"},
                   ].map((reel, index) => (
                     <div
                       key={index}
@@ -307,10 +420,6 @@ export default function ReelReviewPage() {
                         </div>
                         <div className="flex-1">
                           <h5 className="font-semibold text-slate-800 text-xs">{reel.title}</h5>
-                          <div className="flex items-center gap-2 text-xs text-slate-500">
-                            <span>⏱️ {reel.duration}</span>
-                            <span>👀 {reel.views} views</span>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -326,12 +435,12 @@ export default function ReelReviewPage() {
               </div>
             </div>
 
-            <div className="mt-12 text-center">
+            <div className="mt-20 text-center">
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white">
-                <h3 className="text-2xl font-bold mb-4">Ready to Transform Your Content?</h3>
+                <h3 className="text-2xl font-bold mb-4">Ready to Transform Your Learning?</h3>
                 <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-                  Join those who are already using ReelReview to make their
-                  lectures more engaging and accessible.
+                  Join those who are already using ReelReview to make
+                  lecture content easier to process and share.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                   <div className="flex items-center gap-2 text-blue-100">
@@ -344,7 +453,7 @@ export default function ReelReviewPage() {
                   </div>
                   <div className="flex items-center gap-2 text-blue-100">
                     <span className="text-xl">📱</span>
-                    <span className="text-sm">Mobile-ready format</span>
+                    <span className="text-sm">Share with friends</span>
                   </div>
                 </div>
               </div>

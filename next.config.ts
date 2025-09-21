@@ -12,14 +12,6 @@ const nextConfig: NextConfig = {
         destination: '/root/summary',
       },
       {
-        source: '/login',
-        destination: '/root/login',
-      },
-      {
-        source: '/signup',
-        destination: '/root/signup',
-      },
-      {
         source: '/loading',
         destination: '/root/loading',
       },

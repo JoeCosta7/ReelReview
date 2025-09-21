@@ -200,7 +200,7 @@ export default function TranscriptQA({
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ask a question about the transcript..."
+            placeholder="Ask a question..."
             className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             disabled={isLoading}
           />

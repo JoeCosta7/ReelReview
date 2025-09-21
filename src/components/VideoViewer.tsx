@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import TranscriptQA from "./TranscriptQA";
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle, X, Share2, Download, Twitter, Linkedin, Instagram } from "lucide-react";
+import { shareReelViaSocial, downloadReelVideo, ShareData } from "@/utils/shareUtils";
 
 interface VideoViewerProps {
   src: string | null;
@@ -11,6 +12,8 @@ interface VideoViewerProps {
   mainTranscript?: any[];
   isMainVideo?: boolean;
   onQAModeChange?: (isQAMode: boolean) => void;
+  videoBlob?: Blob;
+  videoUrl?: string;
 }
 
 export default function VideoViewer({
@@ -22,10 +25,31 @@ export default function VideoViewer({
   mainTranscript,
   isMainVideo,
   onQAModeChange,
+  videoBlob,
+  videoUrl,
 }: VideoViewerProps) {
   const [highlightedSegment, setHighlightedSegment] = useState<number | null>(null);
   const [showQA, setShowQA] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const transcriptRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  const shareMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close share menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false);
+      }
+    };
+
+    if (showShareMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showShareMenu]);
 
   const handleHighlightSegment = (segmentIndex: number) => {
     setHighlightedSegment(segmentIndex);
@@ -51,16 +75,36 @@ export default function VideoViewer({
       onQAModeChange(showQA && (isMainVideo ?? false));
     }
   }, [showQA, isMainVideo, onQAModeChange]);
+
+
+  const handleSocialShare = (platform: 'twitter' | 'linkedin' | 'instagram') => {
+    if (!title || !summary) return;
+    
+    const shareData: ShareData = {
+      title,
+      text: summary,
+      url: videoUrl,
+    };
+    shareReelViaSocial(shareData, platform as 'twitter' | 'linkedin' | 'instagram');
+    setShowShareMenu(false);
+  };
+
+  const handleDownload = () => {
+    if (videoBlob && title) {
+      downloadReelVideo(videoBlob, `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4`);
+    }
+    setShowShareMenu(false);
+  };
   return (
     <div
+      className="flex flex-col lg:flex-row"
       style={{
         width: "100%",
-        height: showQA && isMainVideo ? "100%" : "96%",
-        display: "flex",
+        height: showQA && isMainVideo ? "100%" : "100%",
         gap: "16px",
         background: "#fff",
         borderRadius: showQA && isMainVideo ? "0px" : "8px",
-        margin: showQA && isMainVideo ? "0px" : "5px",
+        margin: showQA && isMainVideo ? "0px" : "0px",
         overflow: "hidden",
         boxShadow: showQA && isMainVideo ? "none" : "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         transition: "all 0.3s ease-in-out",
@@ -68,12 +112,9 @@ export default function VideoViewer({
     >
       {/* Left side - Video/Iframe */}
       <div
+        className="video-container w-full lg:w-1/2 relative"
         style={{
           flex: "0 0 auto",
-          width: "50%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
           background: "#000",
           borderRadius: "8px",
           overflow: "hidden",
@@ -91,7 +132,7 @@ export default function VideoViewer({
             src={src}
             controls
             style={{
-              aspectRatio: "9/16",
+              aspectRatio: "16/9",
               width: "100%",
               height: "auto",
               maxHeight: "100%",
@@ -104,7 +145,7 @@ export default function VideoViewer({
             src={src}
             ref={iframeRef}
             style={{
-              aspectRatio: "9/16",
+              aspectRatio: "16/9",
               width: "100%",
               height: "auto",
               maxHeight: "100%",
@@ -113,10 +154,69 @@ export default function VideoViewer({
             }}
           />
         )}
+        
+        {/* Share button overlay - only show for reels (not main video) */}
+        {src && !isMainVideo && title && summary && (
+          <div className="absolute top-4 right-4">
+            <div className="relative">
+              <button
+                onClick={() => setShowShareMenu(!showShareMenu)}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 font-semibold text-sm"
+                title="Share reel"
+              >
+                <Share2 className="w-4 h-4" />
+                Share
+              </button>
+              
+              {showShareMenu && (
+                <div ref={shareMenuRef} className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+                  <div className="p-2">
+                    {videoBlob && (
+                      <button
+                        onClick={handleDownload}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download Video
+                      </button>
+                    )}
+                    
+                    {videoBlob && <div className="border-t border-gray-200 my-1"></div>}
+                    
+                    <button
+                      onClick={() => handleSocialShare('twitter')}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-md transition-colors"
+                    >
+                      <Twitter className="w-4 h-4 text-blue-500" />
+                      Share on Twitter
+                    </button>
+                    
+                    <button
+                      onClick={() => handleSocialShare('linkedin')}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-md transition-colors"
+                    >
+                      <Linkedin className="w-4 h-4 text-blue-600" />
+                      Share on LinkedIn
+                    </button>
+                    
+                    <button
+                      onClick={() => handleSocialShare('instagram')}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-pink-50 rounded-md transition-colors"
+                    >
+                      <Instagram className="w-4 h-4 text-pink-500" />
+                      Share on Instagram
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right side - Title and Summary */}
       <div
+        className="w-full lg:w-1/2"
         style={{
           flex: "1",
           padding: "24px",
@@ -129,62 +229,62 @@ export default function VideoViewer({
       >
         {isMainVideo && mainTranscript && mainTranscript.length > 0 ? (
           <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h2
-                style={{
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                  color: "#1f2937",
-                  lineHeight: "1.3",
-                }}
-              >
-                Video Transcript
-              </h2>
-              <button
-                onClick={() => setShowQA(!showQA)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "10px 16px",
-                  backgroundColor: showQA ? "#ef4444" : "#3b82f6",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = showQA ? "#dc2626" : "#2563eb";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = showQA ? "#ef4444" : "#3b82f6";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
-                }}
-              >
-                {showQA ? (
-                  <>
-                    <X className="w-4 h-4" />
-                    Close
-                  </>
-                ) : (
-                  <>
-                    <MessageCircle className="w-4 h-4" />
-                    Ask
-                  </>
-                )}
-              </button>
+            {/* Header Section */}
+            <div style={{ marginBottom: "20px" }}>              
+              {/* Ask Questions Button - Prominent Position */}
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "center", 
+                marginBottom: "16px" 
+              }}>
+                <button
+                  onClick={() => setShowQA(!showQA)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "12px 24px",
+                    backgroundColor: showQA ? "#ef4444" : "#8b5cf6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "12px",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
+                    minWidth: "140px",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = showQA ? "#dc2626" : "#7c3aed";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 16px rgba(139, 92, 246, 0.4)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = showQA ? "#ef4444" : "#8b5cf6";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(139, 92, 246, 0.3)";
+                  }}
+                >
+                  {showQA ? (
+                    <>
+                      <X className="w-5 h-5" />
+                      Close QA
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="w-5 h-5" />
+                      Ask A Question
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             
             {showQA ? (
-              <div style={{ flex: "1", display: "flex", gap: "16px", height: "calc(100% - 60px)" }}>
-                <div style={{ flex: "1", height: "100%" }}>
+              <div style={{ flex: "1", display: "flex", gap: "20px", height: "calc(100% - 80px)" }}>
+                <div style={{ flex: "1", height: "100%", minHeight: "400px" }}>
                   <TranscriptQA
                     transcript={mainTranscript}
                     onHighlightSegment={handleHighlightSegment}

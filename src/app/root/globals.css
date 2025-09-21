@@ -91,6 +91,9 @@
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #4facfe 50%, #00f2fe 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 body {
@@ -100,6 +103,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.6;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #4facfe 50%, #00f2fe 100%);
+  background-attachment: fixed;
 }
 
 /* Hide horizontal scrollbar */
@@ -351,4 +356,164 @@ input, textarea, select {
 .text-editor li {
   margin: 0.25rem 0;
   color: rgb(31, 41, 55);
+}
+
+/* Summary page layout improvements */
+.summary-container {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #4facfe 50%, #00f2fe 100%);
+  background-attachment: fixed;
+}
+
+/* Ensure consistent background for all elements */
+#__next, #root, .app {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #4facfe 50%, #00f2fe 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Instagram-style gradient background */
+.summary-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    #f093fb 0%, 
+    #f5576c 25%, 
+    #4facfe 50%, 
+    #00f2fe 100%);
+  opacity: 0.1;
+  z-index: -1;
+}
+
+.skill-tree-container {
+  overflow-x: visible;
+  overflow-y: auto;
+  height: calc(100% - 60px);
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.skill-tree-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.skill-tree-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.skill-tree-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.skill-tree-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive video container */
+.video-container {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Prevent content cutoff */
+.content-wrapper {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Instagram-style card animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.instagram-card {
+  animation: fadeInUp 0.6s ease-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.instagram-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.instagram-header {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* Instagram-style gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Mobile-first Instagram styling */
+@media (max-width: 640px) {
+  .summary-container {
+    padding: 0;
+  }
+  
+  .instagram-card {
+    border-radius: 16px;
+    margin: 8px;
+  }
+  
+  .skill-tree-container {
+    max-height: calc(100vh - 120px);
+    padding: 0 4px;
+  }
+}
+
+/* Skill tree responsive adjustments */
+@media (max-width: 1024px) {
+  .skill-tree-container {
+    height: calc(100% - 50px);
+  }
+}
+
+@media (max-width: 768px) {
+  .skill-tree-container {
+    height: calc(100% - 40px);
+  }
+}
+
+/* Instagram-style story highlights */
+.story-highlight {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.story-highlight-inner {
+  background: white;
+  border-radius: 50%;
+  padding: 2px;
 }

@@ -5,7 +5,9 @@ import { Button } from "@/components/Button";
 import { useState, useRef } from "react";
 import VideoViewer from "@/components/VideoViewer";
 import BulletPoint from "@/components/BulletPoint";
-import ReelCard from "@/components/ReelCard";
+import SkillTree from "@/components/SkillTree";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import Image from "next/image";
 import { useSession } from "@/app/contexts/SessionContext";
 import { useEffect } from "react";
@@ -29,89 +31,105 @@ export default function WhatWeDo() {
     }
   }, [reels]);
 
+  useEffect(() => {
+    if (isQAMode) {
+      // Small delay to ensure DOM has updated
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }, 100);
+    }
+  }, [isQAMode]);
+
   const iframeRef = useRef<HTMLIFrameElement>(
     null
   ) as React.RefObject<HTMLIFrameElement>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col origin-top">
-      {!isQAMode && (
-        <header className="flex justify-between items-center p-6 max-w-7xl mx-auto w-full">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl">R</span>
-            </div>
-            <span className="ml-3 text-2xl font-bold text-slate-800">
-              ReelReview
-            </span>
-          </div>
-        </header>
-      )}
+    <div className="summary-container min-h-screen flex flex-col">
+      {!isQAMode && <Header />}
 
-      <main>
-        <div className={`flex flex-row w-full justify-center items-start gap-8 transition-all duration-300 ${isQAMode ? 'px-4' : ''}`}>
+      <main className={`flex-1 overflow-hidden transition-all duration-300 ${isQAMode ? 'pt-0 pb-0' : 'pt-20 pb-20'}`}>
+        <div className={`flex flex-col lg:flex-row w-full h-full transition-all duration-300 ${isQAMode ? 'px-2' : 'px-4 lg:px-6'}`}>
           <div
+            className={`${isQAMode ? 'w-full' : 'w-full lg:w-1/2'} h-full flex-shrink-0`}
             style={{
-              width: isQAMode ? "100dvw" : "50dvw",
-              height: isQAMode ? "100dvh" : "85dvh",
-              padding: isQAMode ? "0" : "8px",
+              height: isQAMode ? "100vh" : "calc(100vh - 80px)",
+              minHeight: isQAMode ? "100vh" : "400px",
               transition: "all 0.3s ease-in-out",
             }}
           >
-            <VideoViewer
-              src={currentVideoSrc}
-              iframeRef={iframeRef}
-              title={currentReelIndex !== null && reels[currentReelIndex] ? reels[currentReelIndex].transcript : undefined}
-              summary={currentReelIndex !== null && reels[currentReelIndex] ? reels[currentReelIndex].topics : undefined}
-              mainTranscript={mainVideoTranscript}
-              isMainVideo={currentReelIndex === null && !!currentVideoSrc && currentVideoSrc.includes('embed/')}
-              onQAModeChange={setIsQAMode}
-            />
+            <div className="instagram-card bg-gradient-to-br from-pink-100/80 to-orange-100/80 rounded-2xl shadow-xl border-2 border-purple-300/60 overflow-hidden h-full mt-2 backdrop-blur-sm">
+              <VideoViewer
+                src={currentVideoSrc}
+                iframeRef={iframeRef}
+                title={currentReelIndex !== null && reels[currentReelIndex] ? reels[currentReelIndex].transcript : undefined}
+                summary={currentReelIndex !== null && reels[currentReelIndex] ? reels[currentReelIndex].topics : undefined}
+                mainTranscript={mainVideoTranscript}
+                isMainVideo={currentReelIndex === null && !!currentVideoSrc && currentVideoSrc.includes('embed/')}
+                onQAModeChange={setIsQAMode}
+                videoBlob={currentReelIndex !== null && reels[currentReelIndex] ? reels[currentReelIndex].videoBlob : undefined}
+                videoUrl={currentVideoSrc || undefined}
+              />
+            </div>
           </div>
+          
           {!isQAMode && (
-            <div className="w-[40dvw] flex flex-col items-center justify-start">
-              <div className="w-full flex justify-center items-center mb-8">
-                <button className="mr-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                onClick={() => {
-                  const embedUrl = videoLink.replace("watch?v=", "embed/");
-                  setCurrentVideoSrc(embedUrl);
-                  setCurrentReelIndex(null);
+            <div className="flex w-full lg:w-1/2 flex-col items-center justify-start lg:pl-6 pt-4 lg:pt-0">
+              <div 
+                className="w-full h-full"
+                style={{
+                  height: isQAMode ? "100vh" : "calc(100vh - 80px)",
+                  minHeight: isQAMode ? "100vh" : "400px",
                 }}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Video
-                </button>
-                <span className="text-4xl font-bold text-slate-800 text-center">
-                  Generated Reels
-                </span>
-              </div>
-              <div className="w-full px-8">
+              >
                 {reels && reels.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto">
-                    {reels.map((reel, index) => {
-                      const videoUrl = getReelVideoUrl(index);
-                      return (
-                        <ReelCard
-                          key={index}
-                          transcript={reel.transcript}
-                          topics={reel.topics}
-                          videoUrl={videoUrl || ''}
-                          onPlay={() => {
-                            if (videoUrl) {
-                              setCurrentVideoSrc(videoUrl);
-                              setCurrentReelIndex(index);
-                            }
+                  <div className="instagram-card bg-gradient-to-br from-orange-100/80 to-yellow-100/80 rounded-2xl shadow-xl border-2 border-purple-300/60 p-4 h-full overflow-hidden mt-2 backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-purple-200/60">
+                      <div className="flex items-center space-x-3">
+                        <h2 className="text-lg font-semibold text-gray-800">Your Reels</h2>
+                        <div className="px-2 py-1 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full">
+                          <span className="text-xs font-medium text-purple-600">{reels.length}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="skill-tree-container">
+                      <div className="content-wrapper">
+                        <SkillTree
+                          reels={reels}
+                          getReelVideoUrl={getReelVideoUrl}
+                          onReelPlay={(index, videoUrl) => {
+                            setCurrentVideoSrc(videoUrl);
+                            setCurrentReelIndex(index);
                           }}
+                          onOriginalVideoPlay={() => {
+                            const embedUrl = videoLink.replace("watch?v=", "embed/");
+                            setCurrentVideoSrc(embedUrl);
+                            setCurrentReelIndex(null);
+                          }}
+                          selectedIndex={currentReelIndex}
+                          isOriginalVideoSelected={currentReelIndex === null && !!currentVideoSrc && currentVideoSrc.includes('embed/')}
+                          originalVideoTitle="Original Video"
                         />
-                      );
-                    })}
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-                    <div className="text-lg font-medium mb-2">No reels generated yet</div>
-                    <div className="text-sm">Upload a video to generate reels</div>
+                  <div className="instagram-card bg-gradient-to-br from-pink-100/80 to-orange-100/80 rounded-2xl shadow-xl border-2 border-purple-300/60 p-8 flex flex-col items-center justify-center h-64 mt-2 backdrop-blur-sm">
+                    <div className="story-highlight mb-4">
+                      <div className="story-highlight-inner">
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-lg font-semibold text-gray-700 mb-2">
+                      No reels generated yet
+                    </div>
+                    <div className="text-sm text-gray-500 text-center max-w-xs">
+                      Upload a video to generate personalized reels
+                    </div>
                   </div>
                 )}
               </div>
@@ -119,16 +137,7 @@ export default function WhatWeDo() {
           )}
         </div>
       </main>
-      {/*
-      <footer className="bg-white/80 backdrop-blur-sm border-t border-slate-200 py-8">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-slate-500 text-sm font-medium">
-            © 2025 ReelReview. Transform your lectures into bite-sized learning
-            moments.
-          </p>
-        </div>
-      </footer>
-      */}
+      <Footer />
     </div>
   );
 }

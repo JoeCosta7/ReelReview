@@ -44,11 +44,20 @@ export function SessionProvider({ children }: SessionProviderProps) {
     if (storedVideoLink && storedVideoLink !== "undefined") {
       setVideoLink(JSON.parse(storedVideoLink));
     }
+
+    const storedMainVideoTranscript = localStorage.getItem('mainVideoTranscript');
+    if (storedMainVideoTranscript && storedMainVideoTranscript !== "undefined") {
+      setMainVideoTranscript(JSON.parse(storedMainVideoTranscript));
+    }
   }, []);
 
   useEffect(() => {
     localStorage.setItem('videoLink', JSON.stringify(videoLink));
   }, [videoLink]);
+
+  useEffect(() => {
+    localStorage.setItem('mainVideoTranscript', JSON.stringify(mainVideoTranscript));
+  }, [mainVideoTranscript]);
 
   // Store reels with blob data in IndexedDB for persistence
   useEffect(() => {

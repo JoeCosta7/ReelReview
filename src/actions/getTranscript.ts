@@ -22,7 +22,7 @@ async function getTranscript(link: any): Promise<any> {
     }
 
     const data = await response.json();
-    return [data.transcript, data.video_bytes];
+    return [data.transcript, data.direct_video_url];
 }
 
 async function getSummary(transcript: any): Promise<any> {
@@ -87,7 +87,7 @@ async function chooseImportantClips(transcript: any, topics: any): Promise<any> 
                         items: {
                             type: Type.OBJECT,
                             properties: {
-                                topic: { type: Type.STRING, description: "The topic of the clip" },
+                                topic: { type: Type.STRING, description: "The topic of the clip, this should be as short as possible. IMPORTANT: IF 2 CLIPS HAVE SAME TOPIC, MODIFY THE TOPIC NAMES TO BE MORE SPECIFIC" },
                                 summary: { type: Type.STRING, description: "The summary of the topic" },
                                 start_time: { type: Type.NUMBER, description: "The start time of the clip" },
                                 end_time: { type: Type.NUMBER, description: "The end time of the clip" }
@@ -106,7 +106,7 @@ async function chooseImportantClips(transcript: any, topics: any): Promise<any> 
     return JSON.parse(response.text || '')?.clips || [];
 }
 
-async function getClips(clips: any, video_bytes: any): Promise<any> {
+async function getClips(clips: any, direct_video_url: any): Promise<any> {
     const clipsWithBytes = [];
     
     for (let i = 0; i < clips.length; i++) {
@@ -114,7 +114,8 @@ async function getClips(clips: any, video_bytes: any): Promise<any> {
         console.log(`Processing clip ${i + 1}/${clips.length}: ${clip.start_time}s - ${clip.end_time}s`);
         
         try {
-            const response = await fetch(`${process.env.FLASK_SERVER_URL}/get_clip`, {
+            // Use the new efficient endpoint that streams directly from URL
+            const response = await fetch(`${process.env.FLASK_SERVER_URL}/get_clip_from_url`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -122,10 +123,10 @@ async function getClips(clips: any, video_bytes: any): Promise<any> {
                 body: JSON.stringify({ 
                     start_time: clip.start_time, 
                     end_time: clip.end_time, 
-                    video_bytes: video_bytes 
+                    direct_video_url: direct_video_url 
                 }),
-                // Add timeout to prevent hanging
-                signal: AbortSignal.timeout(300000) // 5 minute timeout
+                // Reduced timeout since this should be much faster
+                signal: AbortSignal.timeout(120000) // 2 minute timeout
             });
 
             if (!response.ok) {
