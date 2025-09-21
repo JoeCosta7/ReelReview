@@ -7,7 +7,6 @@ import ffmpeg
 import tempfile
 import yt_dlp
 from youtube_transcript_api import YouTubeTranscriptApi
-import whisper
 import requests
 
 # Configure logging
@@ -18,9 +17,6 @@ class VideoExtractor:
     def __init__(self, download_dir: str = "downloads"):
         self.download_dir = Path(download_dir)
         self.download_dir.mkdir(exist_ok=True)
-        logger.info("Loading Whisper model ('base'). This may take a moment...")
-        self.whisper_model = whisper.load_model("base")
-        logger.info("Whisper model loaded.")
 
     def extract_video_id(self, url: str) -> Optional[str]:
         if "youtube.com/watch?v=" in url:
@@ -52,28 +48,6 @@ class VideoExtractor:
             logger.error(f"Failed to download audio: {e}")
             return None
 
-    def generate_transcript_with_whisper(self, audio_path: str) -> Optional[List[Dict]]:
-        if not Path(audio_path).exists():
-            logger.error(f"Audio file not found: {audio_path}")
-            return None
-        try:
-            logger.info(f"Generating transcript with Whisper for: {audio_path}")
-            result = self.whisper_model.transcribe(audio_path, verbose=False)
-            formatted_transcript = []
-            for segment in result.get("segments", []):
-                start = segment['start']
-                formatted_entry = {
-                    'text': segment['text'].strip(),
-                    'start': start,
-                    'duration': segment['end'] - start,
-                    'timestamp': self._seconds_to_timestamp(start)
-                }
-                formatted_transcript.append(formatted_entry)
-            logger.info(f"Whisper generated {len(formatted_transcript)} transcript segments.")
-            return formatted_transcript
-        except Exception as e:
-            logger.error(f"Whisper transcription failed: {e}")
-            return None
 
     def get_timestamped_transcript(self, video_url: str, lang: str = 'en') -> Optional[List[Dict]]:
         video_id = self.extract_video_id(video_url)
@@ -98,21 +72,7 @@ class VideoExtractor:
 
         except Exception as e:
             logger.error(f"Failed to fetch transcript: {type(e).__name__}: {e}")
-            error_str = str(e).lower()
-            if 'transcript' in error_str and ('disabled' in error_str or 'not found' in error_str):
-                logger.warning("No existing transcript found. Attempting Whisper.")
-                audio_file = self.download_audio(video_url)
-                if audio_file:
-                    transcript = self.generate_transcript_with_whisper(audio_file)
-                    try:
-                        os.remove(audio_file)
-                    except OSError:
-                        pass
-                    return transcript
-                return None
-            else:
-                logger.error(f"Unexpected error: {e}")
-                return None
+            return None
 
     def _seconds_to_timestamp(self, seconds: float) -> str:
         return str(timedelta(seconds=int(seconds)))

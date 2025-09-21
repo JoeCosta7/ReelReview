@@ -42,12 +42,12 @@ async function getSummary(transcript: any): Promise<any> {
             type: Type.OBJECT,
             properties: {
                 topics: { 
-                    type: Type.ARRAY, 
+                    type: Type.ARRAY,
                     items: { 
                         type: Type.OBJECT,
                         properties: {
                             topic: { type: Type.STRING, description: "A main topic of the transcript" },
-                            summary: { type: Type.STRING, description: "A summary of the topic you have chosen" }
+                            summary: { type: Type.STRING, description: "A summary of the topic you have chosen, this should be at a 5th grade level" }
                         },
                         description: "A list of main topics from the transcript",
                         required: ["topic", "summary"]
@@ -65,15 +65,17 @@ async function getSummary(transcript: any): Promise<any> {
 
 async function chooseImportantClips(transcript: any, topics: any): Promise<any> {
     const prompt = `
-    Choose the most important clips from the transcript based on the topics.
+    Choose the most important and relevant clips from the transcript based on the topics.
     The clips chosen should have a start time and end time.
     The clips chosen should be the most important clips from the transcript based on the topics.
     The clips chosen should be 30 seconds to 1 minute long.
+    The clips chosen should have transcripts that are fully relevant to the topic!
+    IMPORTANT: TO NOT CUT OFF THE SPEAKER, MAKE SURE THE END TIME IS AT THE START OF THE NEXT SENTENCE!
     Transcript: ${JSON.stringify(transcript)}
     Topics: ${JSON.stringify(topics)}
     `;
     const response = await client.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         contents: [{ role: 'user', parts: [{text: prompt}] }],
         config: {
             responseMimeType: "application/json",
