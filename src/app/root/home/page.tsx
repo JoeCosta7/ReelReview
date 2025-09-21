@@ -58,54 +58,62 @@ export default function ReelReviewPage() {
 
     setIsProcessing(true)
 
-    const link = linkInput.split("&list=")[0]
+    try {
+      const link = linkInput.split("&list=")[0]
 
-    setVideoLink(link)
+      setVideoLink(link)
 
-    console.log(link)
+      console.log(link)
 
-    const response = await fetch("/api/getReels", {
-      method: "POST",
-      body: JSON.stringify({ link: link }),
-    })
+      const response = await fetch("/api/getReels", {
+        method: "POST",
+        body: JSON.stringify({ link: link }),
+      })
 
-    if (!response.ok) {
-      setLinkValidation({ isValid: false, message: "Failed to get reels" })
-      setIsProcessing(false)
-      return;
-    }
+      if (!response.ok) {
+        setLinkValidation({ isValid: false, message: "Failed to get reels" })
+        setIsProcessing(false)
+        return;
+      }
 
-    const data = await response.json()
+      const data = await response.json()
 
-    // Store the main video transcript
-    setMainVideoTranscript(data.data.transcript)
+      // Store the main video transcript
+      setMainVideoTranscript(data.data.transcript)
 
-    const clips = data.data.clips
+      const clips = data.data.clips
 
-    const reels = []
-    for (const clip of clips) {
-      // Convert base64 clip bytes to video blob
-      let videoBlob: Blob | null = null;
-      if (clip.clip_bytes) {
-        const binaryString = atob(clip.clip_bytes);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
+      const reels = []
+      for (const clip of clips) {
+        // Convert base64 clip bytes to video blob
+        let videoBlob: Blob | null = null;
+        if (clip.clip_bytes) {
+          const binaryString = atob(clip.clip_bytes);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          videoBlob = new Blob([bytes], { type: 'video/mp4' });
         }
-        videoBlob = new Blob([bytes], { type: 'video/mp4' });
+        
+        const reel = {
+          transcript: clip.topic,
+          topics: clip.summary,
+          videoBlob: videoBlob!,
+        }
+        reels.push(reel)
       }
-      
-      const reel = {
-        transcript: clip.topic,
-        topics: clip.summary,
-        videoBlob: videoBlob!,
-      }
-      reels.push(reel)
+
+      setReels(reels)
+      setIsProcessing(false)
+
+      console.log("Redirecting to summary page...")
+      router.push("/summary")
+    } catch (error) {
+      console.error("Error processing video:", error)
+      setLinkValidation({ isValid: false, message: "An error occurred while processing the video" })
+      setIsProcessing(false)
     }
-
-    setReels(reels)
-
-    router.push("/summary")
   }
 
   return (

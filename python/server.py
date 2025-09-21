@@ -41,17 +41,37 @@ def get_clip():
     data = request.get_json()
     start_time = data.get('start_time')
     end_time = data.get('end_time')
-    video_url = data.get('video_url')
+    video_bytes_b64 = data.get('video_bytes')
 
-    if not start_time or not end_time or not video_url:
-        return jsonify({'error': 'Missing start_time, end_time, or video_url'}), 400
+    if not start_time or not end_time or not video_bytes_b64:
+        return jsonify({'error': 'Missing start_time, end_time, or video_bytes'}), 400
     
-    clip_bytes = getVideoClip(video_url, start_time, end_time, transcript)
-    
-    # Convert clip_bytes to base64 for JSON response
-    clip_bytes_b64 = base64.b64encode(clip_bytes).decode('utf-8')
-    
-    return jsonify({'clip_bytes': clip_bytes_b64})
+    try:
+        # Decode base64 video bytes to binary
+        import base64
+        print(f"Decoding video bytes for clip {start_time}s - {end_time}s")
+        video_bytes = base64.b64decode(video_bytes_b64)
+        print(f"Video bytes decoded: {len(video_bytes)} bytes")
+        
+        # Generate the clip with binary video bytes only (no transcript)
+        print(f"Generating clip...")
+        clip_bytes = getVideoClip(video_bytes, start_time, end_time)
+        
+        if not clip_bytes:
+            print("Failed to generate video clip - no bytes returned")
+            return jsonify({'error': 'Failed to generate video clip'}), 500
+        
+        print(f"Clip generated: {len(clip_bytes)} bytes")
+        
+        # Convert clip_bytes to base64 for JSON response
+        clip_bytes_b64 = base64.b64encode(clip_bytes).decode('utf-8')
+        print(f"Clip encoded to base64: {len(clip_bytes_b64)} characters")
+        
+        return jsonify({'clip_bytes': clip_bytes_b64})
+        
+    except Exception as e:
+        print(f"Error generating clip: {str(e)}")
+        return jsonify({'error': f'Error generating clip: {str(e)}'}), 500
 
 
 if __name__ == '__main__':

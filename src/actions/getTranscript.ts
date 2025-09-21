@@ -108,21 +108,48 @@ async function chooseImportantClips(transcript: any, topics: any): Promise<any> 
 
 async function getClips(clips: any, video_bytes: any): Promise<any> {
     const clipsWithBytes = [];
-    for (const clip of clips) {
-        const response = await fetch(`${process.env.FLASK_SERVER_URL}/get_clip`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ start_time: clip.start_time, end_time: clip.end_time, video_bytes: video_bytes }),
-        });
+    
+    for (let i = 0; i < clips.length; i++) {
+        const clip = clips[i];
+        console.log(`Processing clip ${i + 1}/${clips.length}: ${clip.start_time}s - ${clip.end_time}s`);
+        
+        try {
+            const response = await fetch(`${process.env.FLASK_SERVER_URL}/get_clip`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    start_time: clip.start_time, 
+                    end_time: clip.end_time, 
+                    video_bytes: video_bytes 
+                }),
+                // Add timeout to prevent hanging
+                signal: AbortSignal.timeout(300000) // 5 minute timeout
+            });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch clip');
+            if (!response.ok) {
+                console.error(`Failed to fetch clip ${i + 1}:`, response.status, response.statusText);
+                // Continue with other clips even if one fails
+                clip.clip_bytes = null;
+                clipsWithBytes.push(clip);
+                continue;
+            }
+
+            const data = await response.json();
+            clip.clip_bytes = data.clip_bytes;
+            clipsWithBytes.push(clip);
+            
+            console.log(`Successfully processed clip ${i + 1}/${clips.length}`);
+            
+        } catch (error) {
+            console.error(`Error processing clip ${i + 1}:`, error);
+            // Continue with other clips even if one fails
+            clip.clip_bytes = null;
+            clipsWithBytes.push(clip);
         }
-
-        const data = await response.json();
-        clip.clip_bytes = data.clip_bytes;
-        clipsWithBytes.push(clip);
     }
+    
     return clipsWithBytes;
 }
 export { getTranscript, getSummary, chooseImportantClips, getClips };

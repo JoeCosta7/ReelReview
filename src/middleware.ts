@@ -30,7 +30,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Define valid routes
-    const validRoutes = ['/home', '/signup', '/login', '/loading'];
+    const validRoutes = ['/home', '/signup', '/login', '/loading', '/summary'];
     
     // Redirect root path to /home
     if (pathname === '/') {

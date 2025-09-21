@@ -264,7 +264,7 @@ def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, e
 
 def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> bytes:
     """
-    Main entry point: Takes video bytes and time range, returns final clip with subtitles burned in.
+    Main entry point: Takes video bytes and time range, returns video clip.
     
     Args:
         video_bytes: Raw video file bytes
@@ -272,7 +272,7 @@ def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> byte
         end_time: End time in seconds
         
     Returns:
-        bytes: Final processed video clip with subtitles, or empty bytes on failure
+        bytes: Video clip bytes, or empty bytes on failure
     """
     logger.info(f"Processing video clip from {start_time}s to {end_time}s")
     
@@ -282,18 +282,16 @@ def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> byte
         input_temp.flush()
         input_path = input_temp.name
     
-    raw_clip_path = tempfile.mktemp(suffix=".mp4")
-    srt_path = tempfile.mktemp(suffix=".srt")
-    final_clip_path = tempfile.mktemp(suffix=".mp4")
+    clip_path = tempfile.mktemp(suffix=".mp4")
     
     try:
-        # Step 1: Extract the time range from the video
+        # Extract the time range from the video
         logger.info("Extracting clip from video...")
         (
             ffmpeg
             .input(input_path, ss=start_time, t=end_time-start_time)
             .output(
-                raw_clip_path, 
+                clip_path, 
                 vcodec='libx264',
                 acodec='aac',
                 preset='fast',
@@ -303,23 +301,14 @@ def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> byte
             .run(quiet=True, capture_stdout=True)
         )
         
-        # Step 3: Create SRT file for the clip timerange
-        logger.info("Creating subtitle file...")
-        _transcript_to_srt(transcript, srt_path, start_time, end_time)
-        
-        # Step 4: Burn subtitles and create final vertical format
-        logger.info("Burning subtitles and creating final format...")
-        success = _pad_and_burn_subtitles(raw_clip_path, srt_path, start_time, end_time, final_clip_path)
-        
-        if success and os.path.exists(final_clip_path):
-            with open(final_clip_path, "rb") as f:
-                final_bytes = f.read()
-            logger.info("Successfully created final clip with subtitles")
-            return final_bytes
+        if os.path.exists(clip_path):
+            with open(clip_path, "rb") as f:
+                clip_bytes = f.read()
+            logger.info("Successfully created video clip")
+            return clip_bytes
         else:
-            logger.warning("Subtitle burning failed, returning raw clip")
-            with open(raw_clip_path, "rb") as f:
-                return f.read()
+            logger.error("Clip file was not created")
+            return b""
                 
     except Exception as e:
         logger.error(f"Error processing video clip: {e}")
@@ -327,7 +316,7 @@ def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> byte
         
     finally:
         # Cleanup temporary files
-        for temp_path in [input_path, raw_clip_path, srt_path, final_clip_path]:
+        for temp_path in [input_path, clip_path]:
             try:
                 if os.path.exists(temp_path):
                     os.unlink(temp_path)
