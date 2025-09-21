@@ -119,6 +119,29 @@ class VideoExtractor:
     def _seconds_to_timestamp(self, seconds: float) -> str:
         return str(timedelta(seconds=int(seconds)))
 
+def getTranscript(video_url: str) -> Optional[Dict]:    
+    extractor = VideoExtractor()
+    transcript = extractor.get_timestamped_transcript_from_url(video_url=video_url)
+
+    video_bytes = None
+    try:
+        ydl_opts = {'format': 'mp4/best', 'quiet': True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+            video_url_direct = info['url']
+        resp = requests.get(video_url_direct, stream=True)
+        resp.raise_for_status()
+        video_bytes = resp.content
+        logger.info(f"Fetched video into memory: {len(video_bytes)} bytes")
+    except Exception as e:
+        logger.error(f"Failed to fetch video bytes: {e}")
+
+    if transcript:
+        return {"transcript": transcript, "video_bytes": video_bytes}
+    else:
+        print("\n❌ Failed to get or generate transcript.")
+        return None
+
 def _get_transcript_from_video_bytes(video_bytes: bytes) -> Optional[List[Dict]]:
     """Extract transcript from video bytes using Whisper."""
     extractor = VideoExtractor()

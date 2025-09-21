@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { useSession } from '@/app/contexts/SessionContext';
 
 export async function middleware(req: NextRequest) {
   try {
-    const { videoLink } = useSession();
-
     const response = NextResponse.next({
       request: {
         headers: req.headers,
@@ -34,11 +31,6 @@ export async function middleware(req: NextRequest) {
 
     // Define valid routes
     const validRoutes = ['/home', '/signup', '/login', '/loading'];
-
-    // If videoLink is set, add /summary to validRoutes
-    if (videoLink) {
-      validRoutes.push('/summary');
-    }
     
     // Redirect root path to /home
     if (pathname === '/') {
