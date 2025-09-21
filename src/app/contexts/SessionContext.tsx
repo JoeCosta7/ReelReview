@@ -16,6 +16,8 @@ interface SessionContextType {
   reels: ReelData[];
   setReels: (reels: ReelData[]) => void;
   getReelVideoUrl: (index: number) => string | null;
+  mainVideoTranscript: any[];
+  setMainVideoTranscript: (transcript: any[]) => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -28,6 +30,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
   const [videoLink, setVideoLink] = useState<string>("");
   const [reels, setReels] = useState<ReelData[]>([]);
   const [blobUrls, setBlobUrls] = useState<Map<number, string>>(new Map());
+  const [mainVideoTranscript, setMainVideoTranscript] = useState<any[]>([]);
 
   // Clean up blob URLs when component unmounts
   useEffect(() => {
@@ -93,6 +96,8 @@ export function SessionProvider({ children }: SessionProviderProps) {
       reels,
       setReels,
       getReelVideoUrl,
+      mainVideoTranscript,
+      setMainVideoTranscript,
     }}>
       {children}
     </SessionContext.Provider>

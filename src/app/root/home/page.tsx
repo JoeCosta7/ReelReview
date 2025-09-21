@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { useSession } from "@/app/contexts/SessionContext"
 
 export default function ReelReviewPage() {
-  const { setVideoLink, setReels } = useSession()
+  const { setVideoLink, setReels, setMainVideoTranscript } = useSession()
   const [linkInput, setLinkInput] = useState("")
   const [linkValidation, setLinkValidation] = useState<{ isValid: boolean; message: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -76,6 +76,9 @@ export default function ReelReviewPage() {
     }
 
     const data = await response.json()
+
+    // Store the main video transcript
+    setMainVideoTranscript(data.data.transcript)
 
     const clips = data.data.clips
 

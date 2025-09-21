@@ -11,8 +11,9 @@ import { useSession } from "@/app/contexts/SessionContext";
 import { useEffect } from "react";
 
 export default function WhatWeDo() {
-  const { videoLink, reels, getReelVideoUrl } = useSession()
+  const { videoLink, reels, getReelVideoUrl, mainVideoTranscript } = useSession()
   const [currentVideoSrc, setCurrentVideoSrc] = useState<string | null>(null);
+  const [currentReelIndex, setCurrentReelIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (videoLink) {
@@ -48,7 +49,7 @@ export default function WhatWeDo() {
         <div className="flex flex-row w-full justify-center items-start gap-8">
           <div
             style={{
-              width: "30dvw",
+              width: "50dvw",
               height: "85dvh",
               padding: "8px",
             }}
@@ -56,14 +57,19 @@ export default function WhatWeDo() {
             <VideoViewer
               src={currentVideoSrc}
               iframeRef={iframeRef}
+              title={currentReelIndex !== null && reels[currentReelIndex] ? reels[currentReelIndex].transcript : undefined}
+              summary={currentReelIndex !== null && reels[currentReelIndex] ? reels[currentReelIndex].topics : undefined}
+              mainTranscript={mainVideoTranscript}
+              isMainVideo={currentReelIndex === null && !!currentVideoSrc && currentVideoSrc.includes('embed/')}
             />
           </div>
-          <div className="w-[60dvw] flex flex-col items-center justify-start">
+          <div className="w-[40dvw] flex flex-col items-center justify-start">
             <div className="w-full flex justify-center items-center mb-8">
               <button className="mr-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
               onClick={() => {
                 const embedUrl = videoLink.replace("watch?v=", "embed/");
                 setCurrentVideoSrc(embedUrl);
+                setCurrentReelIndex(null);
               }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,6 +95,7 @@ export default function WhatWeDo() {
                         onPlay={() => {
                           if (videoUrl) {
                             setCurrentVideoSrc(videoUrl);
+                            setCurrentReelIndex(index);
                           }
                         }}
                       />
