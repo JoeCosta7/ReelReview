@@ -142,49 +142,6 @@ def getTranscript(video_url: str) -> Optional[Dict]:
         print("\n❌ Failed to get or generate transcript.")
         return None
 
-def _get_transcript_from_video_bytes(video_bytes: bytes) -> Optional[List[Dict]]:
-    """Extract transcript from video bytes using Whisper."""
-    extractor = VideoExtractor()
-    
-    # Save video bytes to temp file for audio extraction
-    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
-        temp_video.write(video_bytes)
-        temp_video.flush()
-        temp_video_path = temp_video.name
-    
-    try:
-        # Extract audio from the video
-        audio_path = temp_video_path.replace('.mp4', '.mp3')
-        
-        # Use ffmpeg to extract audio
-        (
-            ffmpeg
-            .input(temp_video_path)
-            .output(audio_path, acodec='mp3')
-            .overwrite_output()
-            .run(quiet=True)
-        )
-        
-        # Generate transcript using Whisper
-        transcript = extractor.generate_transcript_with_whisper(audio_path)
-        
-        # Cleanup temp files
-        try:
-            os.unlink(temp_video_path)
-            os.unlink(audio_path)
-        except:
-            pass
-            
-        return transcript
-        
-    except Exception as e:
-        logger.error(f"Failed to extract transcript from video bytes: {e}")
-        try:
-            os.unlink(temp_video_path)
-        except:
-            pass
-        return None
-
 def _transcript_to_srt(transcript: List[Dict], srt_path: str, start_time: float, end_time: float):
     def seconds_to_srt_time(sec):
         h = int(sec // 3600)
@@ -385,15 +342,6 @@ def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> byte
             .overwrite_output()
             .run(quiet=True, capture_stdout=True)
         )
-        
-        # Step 2: Generate transcript from original video
-        logger.info("Generating transcript...")
-        transcript = _get_transcript_from_video_bytes(video_bytes)
-        if not transcript:
-            logger.warning("Could not generate transcript, creating clip without subtitles")
-            # Return the raw clip if no transcript available
-            with open(raw_clip_path, "rb") as f:
-                return f.read()
         
         # Step 3: Create SRT file for the clip timerange
         logger.info("Creating subtitle file...")

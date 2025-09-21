@@ -41,16 +41,12 @@ def get_clip():
     data = request.get_json()
     start_time = data.get('start_time')
     end_time = data.get('end_time')
-    video_bytes = data.get('video_bytes')
+    video_url = data.get('video_url')
 
-    if not start_time or not end_time or not video_bytes:
-        return jsonify({'error': 'Missing start_time, end_time, or video_bytes'}), 400
-
-    # Convert base64 video_bytes back to binary for processing
-    import base64
-    video_bytes_binary = base64.b64decode(video_bytes)
+    if not start_time or not end_time or not video_url:
+        return jsonify({'error': 'Missing start_time, end_time, or video_url'}), 400
     
-    clip_bytes = getVideoClip(video_bytes_binary, start_time, end_time)
+    clip_bytes = getVideoClip(video_url, start_time, end_time, transcript)
     
     # Convert clip_bytes to base64 for JSON response
     clip_bytes_b64 = base64.b64encode(clip_bytes).decode('utf-8')
