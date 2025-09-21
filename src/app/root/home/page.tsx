@@ -105,6 +105,8 @@ export default function ReelReviewPage() {
     router.push("/summary")
   }
 
+
+
   return (
     <div>
       <Header />
@@ -119,29 +121,7 @@ export default function ReelReviewPage() {
           </p>
         </div>
 
-        <div className="max-w-7xl mb-12">
-          <div className="flex items-center justify-center gap-4 text-base flex-wrap">
-            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
-              <span className="text-xl mr-2">📹</span>
-              <span className="font-semibold text-slate-700">Upload lecture</span>
-            </div>
-            <div className="text-blue-500 text-xl font-bold">→</div>
-            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
-              <span className="text-xl mr-2">📁</span>
-              <span className="font-semibold text-slate-700">We transcribe</span>
-            </div>
-            <div className="text-blue-500 text-xl font-bold">→</div>
-            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
-              <span className="text-xl mr-2">✂️</span>
-              <span className="font-semibold text-slate-700">AI finds moments</span>
-            </div>
-            <div className="text-blue-500 text-xl font-bold">→</div>
-            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
-              <span className="text-xl mr-2">📱</span>
-              <span className="font-semibold text-slate-700">Get reels</span>
-            </div>
-          </div>
-        </div>
+        
 
         <div className="flex flex-col items-center gap-8 w-full">
           <div className="flex flex-col items-center gap-6 w-full max-w-2xl">
@@ -199,7 +179,119 @@ export default function ReelReviewPage() {
               </p>
             </div>
           </div>
-        <div className="mt-16 w-full max-w-6xl">
+
+          <div className="text-center mb-16">
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-lg mb-12 max-w-6xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Check Out Some Of Our Favorite Lectures to Get Started
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* MIT Math Lecture */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center mb-5">
+                    <img src="/mit.png" alt="MIT Logo" className="h-10" />
+                  </div>
+                  <button
+                    onClick={() => {
+                      setLinkInput("https://www.youtube.com/watch?v=lUUte2o2Sn8")
+                      validateLink("https://www.youtube.com/watch?v=lUUte2o2Sn8")
+                      handleSubmit
+                    }}
+                    className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
+                  >
+                    Reel this Lecture
+                  </button>
+                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                    <iframe
+                      src="https://www.youtube.com/embed/lUUte2o2Sn8"
+                      title="MIT Math Lecture"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+
+                {/* Stanford Physics */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center mb-5">
+                    <img src="/stanford.png" alt="Stanford Logo" className="h-10" />
+                  </div>
+                  <button
+                    onClick={() => {
+                      setLinkInput("https://www.youtube.com/watch?v=2h1E3YJMKfA")
+                      validateLink("https://www.youtube.com/watch?v=2h1E3YJMKfA")
+                      handleSubmit
+                    }}
+                    >
+                    Reel this Lecture
+                  </button>
+                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                    <iframe
+                      src="https://www.youtube.com/embed/2h1E3YJMKfA"
+                      title="Stanford Physics Lecture"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+
+                {/* Harvard CS */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center mb-5">
+                    <img src="/harvard.png" alt="Harvard Logo" className="h-10" />
+                  </div>
+                  <button
+                    onClick={() => {setLinkInput("https://www.youtube.com/watch?v=0JUN9aDxVmI")
+                      validateLink("https://www.youtube.com/watch?v=0JUN9aDxVmI")
+                      handleSubmit
+                    }}
+                    className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
+                  >
+                    Reel this Lecture
+                  </button>
+                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                    <iframe
+                      src="https://www.youtube.com/embed/0JUN9aDxVmI"
+                      title="Harvard Algorithms Lecture"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+
+                {/* Yale Physics */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center mb-5">
+                    <img src="/yale.png" alt="Yale Logo" className="h-10" />
+                  </div>
+                  <button
+                    onClick={() => {setLinkInput("https://www.youtube.com/watch?v=uK2eFv7ne_Q")
+                      validateLink("https://www.youtube.com/watch?v=uK2eFv7ne_Q")
+                      handleSubmit
+                    }}
+                  >
+                    Reel this Lecture
+                  </button>
+                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                    <iframe
+                      src="https://www.youtube.com/embed/uK2eFv7ne_Q"
+                      title="UC Berkeley Chemistry Lecture"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        <div className="mt-4 w-full max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-slate-800 mb-4">See the Magic in Action</h2>
               <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
@@ -207,6 +299,32 @@ export default function ReelReviewPage() {
                 essence of your content
               </p>
             </div>
+
+            <div className="max-w-7xl mb-12">
+          <div className="flex items-center justify-center gap-4 text-base flex-wrap">
+            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
+              <span className="text-xl mr-2">📹</span>
+              <span className="font-semibold text-slate-700">Upload lecture</span>
+            </div>
+            <div className="text-blue-500 text-xl font-bold">→</div>
+            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
+              <span className="text-xl mr-2">📁</span>
+              <span className="font-semibold text-slate-700">We transcribe</span>
+            </div>
+            <div className="text-blue-500 text-xl font-bold">→</div>
+            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
+              <span className="text-xl mr-2">✂️</span>
+              <span className="font-semibold text-slate-700">AI finds moments</span>
+            </div>
+            <div className="text-blue-500 text-xl font-bold">→</div>
+            <div className="flex items-center bg-white rounded-lg px-4 py-3 shadow-sm border border-slate-200">
+              <span className="text-xl mr-2">📱</span>
+              <span className="font-semibold text-slate-700">Get reels</span>
+            </div>
+          </div>
+        </div>
+
+            
 
             <div className="flex flex-row gap-8 items-center justify-center">
               {/* Before box */}

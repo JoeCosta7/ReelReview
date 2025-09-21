@@ -51,16 +51,10 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-3">
             <Button
               variant="outline"
-              className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 border-gray-300 font-medium transition-all duration-200"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-medium shadow-sm transition-all"
               onClick={() => router.push('/login')}
             >
               Log In
-            </Button>
-            <Button
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-200"
-              onClick={() => router.push('/signup')}
-            >
-              Sign Up
             </Button>
           </div>
 
