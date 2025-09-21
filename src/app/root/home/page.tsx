@@ -229,7 +229,7 @@ export default function ReelReviewPage() {
           Reel Review
           </span>
           <p className="text-xl mt-4 text-slate-600 font-bold max-w-2xl mx-auto leading-relaxed">
-            Transform your lectures into engaging, bite-sized learning moments with AI-powered video processing
+            Transform your lectures into engaging, shareable, straight-to-the-point learning moments
           </p>
         </div>
 
@@ -285,7 +285,7 @@ export default function ReelReviewPage() {
                 </p>
               )}
               <p className="text-sm text-slate-500 mt-3 text-center">
-                Supports YouTube videos
+                Supports YouTube videos currently
               </p>
             </div>
           </div>
