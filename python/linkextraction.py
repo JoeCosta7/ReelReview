@@ -7,7 +7,6 @@ import ffmpeg
 import tempfile
 import yt_dlp
 from youtube_transcript_api import YouTubeTranscriptApi
-import whisper
 import requests
 import subprocess
 import json
@@ -20,9 +19,6 @@ class VideoExtractor:
     def __init__(self, download_dir: str = "downloads"):
         self.download_dir = Path(download_dir)
         self.download_dir.mkdir(exist_ok=True)
-        logger.info("Loading Whisper model ('base'). This may take a moment...")
-        self.whisper_model = whisper.load_model("base")
-        logger.info("Whisper model loaded.")
 
     def extract_video_id(self, url: str) -> Optional[str]:
         if "youtube.com/watch?v=" in url:
@@ -32,52 +28,14 @@ class VideoExtractor:
         return None
 
     def download_audio(self, video_url: str) -> Optional[str]:
-        video_id = self.extract_video_id(video_url)
-        if not video_id:
-            return None
-        
-        output_path = str(self.download_dir / f"{video_id}.mp3")
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}],
-            'outtmpl': str(self.download_dir / '%(id)s.%(ext)s'),
-            'quiet': True, 'no_warnings': True,
-        }
-        
-        try:
-            logger.info(f"Downloading audio for video ID: {video_id}")
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([video_url])
-            logger.info(f"Audio downloaded to: {output_path}")
-            return output_path
-        except Exception as e:
-            logger.error(f"Failed to download audio: {e}")
-            return None
+        # This function is no longer used since we removed Whisper
+        return None
 
     def generate_transcript_with_whisper(self, audio_path: str) -> Optional[List[Dict]]:
-        if not Path(audio_path).exists():
-            logger.error(f"Audio file not found: {audio_path}")
-            return None
-        try:
-            logger.info(f"Generating transcript with Whisper for: {audio_path}")
-            result = self.whisper_model.transcribe(audio_path, verbose=False)
-            formatted_transcript = []
-            for segment in result.get("segments", []):
-                start = segment['start']
-                formatted_entry = {
-                    'text': segment['text'].strip(),
-                    'start': start,
-                    'duration': segment['end'] - start,
-                    'timestamp': self._seconds_to_timestamp(start)
-                }
-                formatted_transcript.append(formatted_entry)
-            logger.info(f"Whisper generated {len(formatted_transcript)} transcript segments.")
-            return formatted_transcript
-        except Exception as e:
-            logger.error(f"Whisper transcription failed: {e}")
-            return None
+        # Whisper functionality removed
+        return None
 
-    def get_timestamped_transcript_from_url(self, video_url: str, lang: str = 'en') -> Optional[List[Dict]]:
+    def get_timestamped_transcript(self, video_url: str, lang: str = 'en') -> Optional[List[Dict]]:
         video_id = self.extract_video_id(video_url)
         if not video_id:
             logger.error(f"Could not extract video ID from URL: {video_url}")
@@ -102,15 +60,7 @@ class VideoExtractor:
             logger.error(f"Failed to fetch transcript: {type(e).__name__}: {e}")
             error_str = str(e).lower()
             if 'transcript' in error_str and ('disabled' in error_str or 'not found' in error_str):
-                logger.warning("No existing transcript found. Attempting Whisper.")
-                audio_file = self.download_audio(video_url)
-                if audio_file:
-                    transcript = self.generate_transcript_with_whisper(audio_file)
-                    try:
-                        os.remove(audio_file)
-                    except OSError:
-                        pass
-                    return transcript
+                logger.warning("No existing transcript found. Cannot generate transcript without Whisper.")
                 return None
             else:
                 logger.error(f"Unexpected error: {e}")
@@ -119,50 +69,80 @@ class VideoExtractor:
     def _seconds_to_timestamp(self, seconds: float) -> str:
         return str(timedelta(seconds=int(seconds)))
 
-def _get_transcript_from_video_bytes(video_bytes: bytes) -> Optional[List[Dict]]:
-    """Extract transcript from video bytes using Whisper."""
+def getTranscript(video_url: str) -> Optional[Dict]:    
     extractor = VideoExtractor()
-    
-    # Save video bytes to temp file for audio extraction
-    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
-        temp_video.write(video_bytes)
-        temp_video.flush()
-        temp_video_path = temp_video.name
-    
+    transcript = extractor.get_timestamped_transcript(video_url=video_url)
+
+    video_bytes = None
     try:
-        # Extract audio from the video
-        audio_path = temp_video_path.replace('.mp4', '.mp3')
+        ydl_opts = {'format': 'mp4/best', 'quiet': True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+            video_url_direct = info['url']
+        resp = requests.get(video_url_direct, stream=True)
+        resp.raise_for_status()
+        video_bytes = resp.content
+        logger.info(f"Fetched video into memory: {len(video_bytes)} bytes")
+    except Exception as e:
+        logger.error(f"Failed to fetch video bytes: {e}")
+
+    if transcript:
+        return {"transcript": transcript, "video_bytes": video_bytes}
+    else:
+        print("\n❌ Failed to get or generate transcript.")
+        return None
+
+def getVideoClip_fixed(video_bytes: bytes, start_time: float, end_time: float) -> bytes:
+    """
+    Fixed version of getVideoClip that ensures proper encoding.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as in_file:
+        in_file.write(video_bytes)
+        in_file.flush()
+        in_path = in_file.name
         
-        # Use ffmpeg to extract audio
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as out_file:
+        out_path = out_file.name
+
+    try:
+        # Use proper re-encoding instead of copy to avoid codec issues
         (
             ffmpeg
-            .input(temp_video_path)
-            .output(audio_path, acodec='mp3')
+            .input(in_path, ss=start_time, t=end_time-start_time)  # Use -t instead of -to for better precision
+            .output(
+                out_path, 
+                vcodec='libx264',
+                acodec='aac',
+                preset='fast',
+                crf=23
+            )
             .overwrite_output()
-            .run(quiet=True)
+            .run(quiet=True, capture_stdout=True)
         )
         
-        # Generate transcript using Whisper
-        transcript = extractor.generate_transcript_with_whisper(audio_path)
-        
-        # Cleanup temp files
+        with open(out_path, "rb") as f:
+            clip_bytes = f.read()
+            
+        # Clean up temp files
         try:
-            os.unlink(temp_video_path)
-            os.unlink(audio_path)
+            os.unlink(in_path)
+            os.unlink(out_path)
         except:
             pass
             
-        return transcript
+        return clip_bytes
         
     except Exception as e:
-        logger.error(f"Failed to extract transcript from video bytes: {e}")
+        print(f"❌ Error in getVideoClip_fixed: {e}")
+        # Clean up temp files
         try:
-            os.unlink(temp_video_path)
+            os.unlink(in_path)
+            os.unlink(out_path)
         except:
             pass
-        return None
+        return b""
 
-def _transcript_to_srt(transcript: List[Dict], srt_path: str, start_time: float, end_time: float):
+def transcript_to_srt(transcript: List[Dict], srt_path: str, start_time: float, end_time: float):
     def seconds_to_srt_time(sec):
         h = int(sec // 3600)
         m = int((sec % 3600) // 60)
@@ -199,9 +179,9 @@ def _transcript_to_srt(transcript: List[Dict], srt_path: str, start_time: float,
             text = entry['text'].strip()
             f.write(f"{idx}\n{start} --> {end}\n{text}\n\n")
 
-def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, end_time: float, output_file: str):
+def pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, end_time: float, output_file: str = "clip.mp4"):
     """
-    Centers video in upper area, reserves smaller fixed bottom bar, reduces font size.
+    Updated version: Centers video in upper area, reserves smaller fixed bottom bar, reduces font size.
     """
     # Calculate duration for the clip
     duration = end_time - start_time
@@ -213,16 +193,20 @@ def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, e
     
     # Check if input files exist
     if not os.path.exists(abs_input):
-        logger.error(f"Input video file not found: {abs_input}")
+        print(f"❌ Input video file not found: {abs_input}")
         return False
     
     if not os.path.exists(abs_srt):
-        logger.error(f"SRT subtitle file not found: {abs_srt}")
+        print(f"❌ SRT subtitle file not found: {abs_srt}")
         return False
     
-    logger.info(f"Creating clip from {start_time}s to {end_time}s ({duration}s duration)")
+    print(f"🎬 Creating clip from {start_time}s to {end_time}s ({duration}s duration)")
+    print(f"📁 Input: {abs_input}")
+    print(f"📄 Subtitles: {abs_srt}")
+    print(f"💾 Output: {abs_output}")
     
     # First, probe the input file to understand its properties
+    print("🔍 Analyzing input file...")
     probe_cmd = [
         "ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", abs_input
     ]
@@ -230,7 +214,7 @@ def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, e
     try:
         probe_result = subprocess.run(probe_cmd, capture_output=True, text=True, timeout=30)
         if probe_result.returncode != 0:
-            logger.error(f"Cannot analyze input file: {probe_result.stderr}")
+            print(f"❌ Cannot analyze input file: {probe_result.stderr}")
             return False
         
         probe_data = json.loads(probe_result.stdout)
@@ -240,16 +224,18 @@ def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, e
         audio_streams = [s for s in probe_data['streams'] if s['codec_type'] == 'audio']
         
         if not video_streams:
-            logger.error("No video stream found in input file")
+            print("❌ No video stream found in input file")
             return False
             
+        print(f"✅ Input analysis complete - Video streams: {len(video_streams)}, Audio streams: {len(audio_streams)}")
+        
         # Get video dimensions for scaling calculation
         video_width = int(video_streams[0].get('width', 0))
         video_height = int(video_streams[0].get('height', 0))
-        logger.info(f"Original video dimensions: {video_width}x{video_height}")
+        print(f"📐 Original video dimensions: {video_width}x{video_height}")
         
     except Exception as e:
-        logger.warning(f"Could not analyze input file: {e}. Proceeding anyway...")
+        print(f"⚠️ Warning: Could not analyze input file: {e}. Proceeding anyway...")
         # Fallback assumptions if probe fails
         video_width, video_height = 1920, 1080  # Default to landscape
     
@@ -258,7 +244,7 @@ def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, e
     target_video_height = 1920 - subtitle_area_height
     
     # Build the FFmpeg command with chained filters for centering
-    logger.info("Creating vertical clip with subtitles...")
+    print("🔧 Creating vertical clip with subtitles...")
     final_cmd = [
         "ffmpeg", "-y",
         "-i", abs_input,
@@ -270,6 +256,7 @@ def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, e
             # Step 3: Pad to full 1080x1920, placing the upper padded video at the top
             "pad=1080:1920:(ow-iw)/2:0:black,"
             # Step 4: Burn subtitles into the bottom bar
+            # Alignment=2 => bottom-center, MarginV ~130 keeps top edge of subs near start of bottom bar
             f"subtitles={abs_srt}:force_style='FontSize=16,PrimaryColour=&Hffffff,OutlineColour=&H000000,Outline=1,Bold=1,Alignment=6,MarginV=190'"
         ),
         "-c:v", "libx264",
@@ -280,7 +267,7 @@ def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, e
     
     # Add audio codec if there are audio streams
     try:
-        if any(s['codec_type'] == 'audio' for s in probe_data['streams']):
+        if 'probe_data' in locals() and any(s['codec_type'] == 'audio' for s in probe_data['streams']):
             final_cmd.extend(["-c:a", "aac", "-b:a", "128k"])
         else:
             final_cmd.extend(["-an"])  # No audio
@@ -289,116 +276,196 @@ def _pad_and_burn_subtitles(input_clip: str, srt_file: str, start_time: float, e
     
     final_cmd.append(abs_output)
     
-    try:        
+    try:
+        print("⚙️ Running final processing command...")
+        print(f"Command: {' '.join(final_cmd)}")
+        
         result = subprocess.run(final_cmd, capture_output=True, text=True, timeout=180)
         
         if result.returncode == 0:
-            logger.info("FFmpeg completed successfully")
+            print("✅ FFmpeg completed successfully")
             
             # Check if output file was created and has reasonable size
             if os.path.exists(abs_output):
                 file_size = os.path.getsize(abs_output)
-                logger.info(f"Output file size: {file_size / (1024*1024):.1f} MB")
+                print(f"📁 Output file size: {file_size / (1024*1024):.1f} MB")
                 
                 if file_size < 1000:  # Less than 1KB is suspicious
-                    logger.warning("Output file is very small, might be corrupted")
+                    print("⚠️ Warning: Output file is very small, might be corrupted")
                     return False
                 else:
-                    logger.info("Final clip with subtitles created successfully!")
+                    print("🎉 Final clip with subtitles created successfully!")
                     return True
             else:
-                logger.error("Output file was not created")
+                print("❌ Output file was not created")
                 return False
         else:
-            logger.error(f"FFmpeg failed with error:")
-            logger.error(f"Return code: {result.returncode}")
-            logger.error(f"Error output: {result.stderr}")
+            print(f"❌ FFmpeg failed with error:")
+            print(f"Return code: {result.returncode}")
+            print(f"Error output: {result.stderr}")
+            print(f"Standard output: {result.stdout}")
             return False
             
     except subprocess.TimeoutExpired:
-        logger.error("FFmpeg command timed out (>180 seconds)")
+        print("❌ FFmpeg command timed out (>180 seconds)")
         return False
     except Exception as e:
-        logger.error(f"Exception during processing: {e}")
+        print(f"❌ Exception during processing: {e}")
         return False
 
-def getVideoClip(video_bytes: bytes, start_time: float, end_time: float) -> bytes:
-    """
-    Main entry point: Takes video bytes and time range, returns final clip with subtitles burned in.
-    
-    Args:
-        video_bytes: Raw video file bytes
-        start_time: Start time in seconds
-        end_time: End time in seconds
-        
-    Returns:
-        bytes: Final processed video clip with subtitles, or empty bytes on failure
-    """
-    logger.info(f"Processing video clip from {start_time}s to {end_time}s")
-    
-    # Create temporary files
-    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as input_temp:
-        input_temp.write(video_bytes)
-        input_temp.flush()
-        input_path = input_temp.name
-    
-    raw_clip_path = tempfile.mktemp(suffix=".mp4")
-    srt_path = tempfile.mktemp(suffix=".srt")
-    final_clip_path = tempfile.mktemp(suffix=".mp4")
+def verify_clip_quality(clip_path: str):
+    """Verify that the created clip is valid and playable."""
+    if not os.path.exists(clip_path):
+        print(f"❌ Clip file doesn't exist: {clip_path}")
+        return False
     
     try:
-        # Step 1: Extract the time range from the video
-        logger.info("Extracting clip from video...")
-        (
-            ffmpeg
-            .input(input_path, ss=start_time, t=end_time-start_time)
-            .output(
-                raw_clip_path, 
-                vcodec='libx264',
-                acodec='aac',
-                preset='fast',
-                crf=23
-            )
-            .overwrite_output()
-            .run(quiet=True, capture_stdout=True)
-        )
+        # Use ffprobe to check the file
+        probe_cmd = [
+            "ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", clip_path
+        ]
         
-        # Step 2: Generate transcript from original video
-        logger.info("Generating transcript...")
-        transcript = _get_transcript_from_video_bytes(video_bytes)
-        if not transcript:
-            logger.warning("Could not generate transcript, creating clip without subtitles")
-            # Return the raw clip if no transcript available
-            with open(raw_clip_path, "rb") as f:
-                return f.read()
+        result = subprocess.run(probe_cmd, capture_output=True, text=True)
         
-        # Step 3: Create SRT file for the clip timerange
-        logger.info("Creating subtitle file...")
-        _transcript_to_srt(transcript, srt_path, start_time, end_time)
-        
-        # Step 4: Burn subtitles and create final vertical format
-        logger.info("Burning subtitles and creating final format...")
-        success = _pad_and_burn_subtitles(raw_clip_path, srt_path, start_time, end_time, final_clip_path)
-        
-        if success and os.path.exists(final_clip_path):
-            with open(final_clip_path, "rb") as f:
-                final_bytes = f.read()
-            logger.info("Successfully created final clip with subtitles")
-            return final_bytes
-        else:
-            logger.warning("Subtitle burning failed, returning raw clip")
-            with open(raw_clip_path, "rb") as f:
-                return f.read()
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            
+            # Check if we have video and audio streams
+            video_streams = [s for s in data['streams'] if s['codec_type'] == 'video']
+            audio_streams = [s for s in data['streams'] if s['codec_type'] == 'audio']
+            
+            if video_streams:
+                v = video_streams[0]
+                print(f"✅ Video: {v['width']}x{v['height']}, {v['codec_name']}")
                 
+            if audio_streams:
+                a = audio_streams[0]
+                print(f"✅ Audio: {a['codec_name']}, {a.get('sample_rate', 'unknown')} Hz")
+            
+            duration = float(data['format']['duration'])
+            print(f"✅ Duration: {duration:.2f} seconds")
+            
+            return True
+        else:
+            print(f"❌ ffprobe failed: {result.stderr}")
+            return False
+            
     except Exception as e:
-        logger.error(f"Error processing video clip: {e}")
-        return b""
+        print(f"❌ Error verifying clip: {e}")
+        return False
+
+# MAIN PUBLIC INTERFACE FUNCTION
+def getVideoClip(video_url: str, start_time: float, end_time: float) -> Optional[bytes]:
+    """
+    Public interface function that takes a video URL and time range,
+    returns the final processed clip with subtitles as bytes.
+    
+    Args:
+        video_url (str): YouTube video URL
+        start_time (float): Start time in seconds
+        end_time (float): End time in seconds
+    
+    Returns:
+        bytes: Final processed video clip with subtitles, or None if failed
+    """
+    try:
+        print(f"🎬 Processing clip from {start_time}s to {end_time}s")
+        print(f"📺 Video URL: {video_url}")
         
-    finally:
-        # Cleanup temporary files
-        for temp_path in [input_path, raw_clip_path, srt_path, final_clip_path]:
-            try:
-                if os.path.exists(temp_path):
-                    os.unlink(temp_path)
-            except:
-                pass
+        # Step 1: Get transcript and video data
+        print("\n📝 Getting transcript and video data...")
+        data = getTranscript(video_url)
+        if not data:
+            print("❌ Failed to get transcript/video data")
+            return None
+        
+        transcript = data["transcript"]
+        video_bytes = data["video_bytes"]
+        
+        if not video_bytes:
+            print("❌ Failed to get video bytes")
+            return None
+            
+        print(f"✅ Got transcript with {len(transcript)} segments")
+        print(f"✅ Got video data: {len(video_bytes)} bytes")
+        
+        # Step 2: Create initial clip
+        print("\n✂️ Creating initial video clip...")
+        clip_bytes = getVideoClip_fixed(video_bytes, start_time, end_time)
+        if not clip_bytes:
+            print("❌ Failed to create video clip")
+            return None
+        
+        # Step 3: Create temporary files for processing
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_clip:
+            temp_clip.write(clip_bytes)
+            temp_clip_path = temp_clip.name
+        
+        with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as temp_srt:
+            temp_srt_path = temp_srt.name
+        
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_final:
+            temp_final_path = temp_final.name
+        
+        try:
+            # Step 4: Generate SRT subtitles
+            print("\n📄 Generating subtitles...")
+            transcript_to_srt(transcript, temp_srt_path, start_time, end_time)
+            print("✅ Subtitles generated")
+            
+            # Step 5: Apply padding and burn subtitles
+            print("\n🔥 Applying final processing with subtitles...")
+            success = pad_and_burn_subtitles(
+                temp_clip_path, 
+                temp_srt_path, 
+                start_time, 
+                end_time, 
+                temp_final_path
+            )
+            
+            if not success:
+                print("❌ Failed to apply final processing")
+                return None
+            
+            # Step 6: Read final processed clip
+            print("\n📖 Reading final processed clip...")
+            with open(temp_final_path, "rb") as f:
+                final_clip_bytes = f.read()
+            
+            print(f"✅ Final clip ready: {len(final_clip_bytes)} bytes")
+            print("🎉 Video clip processing completed successfully!")
+            
+            return final_clip_bytes
+            
+        finally:
+            # Clean up temporary files
+            for temp_file in [temp_clip_path, temp_srt_path, temp_final_path]:
+                try:
+                    if os.path.exists(temp_file):
+                        os.unlink(temp_file)
+                except:
+                    pass
+    
+    except Exception as e:
+        print(f"❌ Error in getVideoClip: {e}")
+        return None
+
+# Test the main interface
+if __name__ == "__main__":
+    test_url = "https://www.youtube.com/watch?v=zsLc_Bd66CU"
+    start_time = 26.0
+    end_time = 53.770
+    print(getTranscript(test_url)["transcript"])  # Test transcript fetching
+    print("🚀 Testing main interface: getVideoClip()")
+    final_clip = getVideoClip(test_url, start_time, end_time)
+    
+    if final_clip:
+        # Save the final clip
+        with open("final_output_clip.mp4", "wb") as f:
+            f.write(final_clip)
+        print("✅ Final clip saved as 'final_output_clip.mp4'")
+        
+        # Verify the clip quality
+        verify_clip_quality("final_output_clip.mp4")
+    else:
+        print("❌ Failed to generate final clip")
