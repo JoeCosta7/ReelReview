@@ -1,77 +1,141 @@
-import React from "react";
+import React, { useState } from "react";
 
-interface ReelCardProps {
-  transcript: string;
-  topics: string;
-  videoUrl: string;
-  onPlay: () => void;
+import { Check } from "lucide-react";
+
+const skillData = [
+  [{ title: "Lorem Ipsum", color: "blue" }],
+  [
+    { title: "Dolor Sit", color: "green" },
+    { title: "Amet", color: "green" },
+  ],
+  [
+    { title: "Consectetur", color: "purple" },
+    { title: "Adipiscing", color: "purple" },
+  ],
+  [
+    { title: "Elit Sed", color: "orange" },
+    { title: "Do Eiusmod", color: "orange" },
+    { title: "Tempor", color: "orange" },
+  ],
+  [
+    { title: "Incididunt Ut", color: "blue" },
+    { title: "Labore Et", color: "blue" },
+  ],
+  [{ title: "Magna Aliqua", color: "green" }],
+];
+
+const styles = `
+.skill-tree-container {
+  background-color: #f7f7f7;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  width: 100%;
 }
 
-export default function ReelCard({
-  transcript,
-  topics,
-  videoUrl,
-  onPlay,
-}: ReelCardProps) {
-  return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200 hover:shadow-lg transition-shadow">
-      <div className="flex flex-col space-y-3">
-        {/* Video thumbnail/preview */}
-        <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
-          {videoUrl ? (
-            <video
-              src={videoUrl}
-              className="w-full h-full object-cover"
-              muted
-              preload="metadata"
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <div className="text-gray-500 text-sm">Loading...</div>
-            </div>
-          )}
-          <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-            <button
-              onClick={onPlay}
-              className="bg-white bg-opacity-90 rounded-full p-2 hover:bg-opacity-100 transition-all"
-            >
-              <svg
-                className="w-6 h-6 text-gray-800"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </button>
-          </div>
-        </div>
+.skill-tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+}
 
-        {/* Content */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-gray-800 text-sm overflow-hidden" style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-          }}>
-            {transcript}
-          </h3>
-          <p className="text-xs text-gray-600 overflow-hidden" style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-          }}>
-            {topics}
-          </p>
-        </div>
+.skill-row {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+}
 
-        {/* Play button */}
-        <button
-          onClick={onPlay}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
-          Play Reel
-        </button>
-      </div>
-    </div>
+.skill-node {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+  padding: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.skill-node:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.skill-node:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Color Variations */
+.skill-node.blue { background-color: #58a7d6; border-bottom: 6px solid #4a8dbb; }
+.skill-node.green { background-color: #78c843; border-bottom: 6px solid #61a337; }
+.skill-node.purple { background-color: #ce82ff; border-bottom: 6px solid #a869d1; }
+.skill-node.orange { background-color: #f79437; border-bottom: 6px solid #d37a28; }
+
+/* Selected state */
+.skill-node.selected {
+  background-color: gold !important;
+  border-bottom: 6px solid #b8860b !important;
+  color: white;
+}
+`;
+
+const SkillTree = () => {
+  // 押されたスキルの状態を rowIndex と skillIndex で管理
+  const [selectedNodes, setSelectedNodes] = useState<boolean[][]>(
+    skillData.map((row) => row.map(() => false))
   );
-}
+
+  const toggleNode = (rowIndex: number, skillIndex: number) => {
+    setSelectedNodes((prev) => {
+      const copy = prev.map((r) => [...r]);
+      copy[rowIndex][skillIndex] = !copy[rowIndex][skillIndex];
+      return copy;
+    });
+  };
+
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="skill-tree-container">
+        <div className="skill-tree">
+          {skillData.map((row, rowIndex) => (
+            <div className="skill-row" key={rowIndex}>
+              {row.map((skill, skillIndex) => {
+                const isSelected = selectedNodes[rowIndex][skillIndex];
+                return (
+                  <div
+                    key={skillIndex}
+                    className={`skill-node ${skill.color} ${
+                      isSelected ? "selected" : ""
+                    }`}
+                    onClick={() => toggleNode(rowIndex, skillIndex)}
+                  >
+                    {isSelected ? (
+                      <Check size={32} color="white" />
+                    ) : (
+                      skill.title
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default SkillTree;
