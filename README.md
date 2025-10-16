@@ -7,9 +7,11 @@ This project was built for Cornell's Big Red Hacks 2025. ReelReview splices up l
 Check out the demo video below!
 
 <video controls width="720">
-	<source src="ReelReviewDemo.mp4" type="video/mp4" />
+	<source src="[ReelReviewDemo.mp4](https://github.com/user-attachments/assets/c08162b7-4137-4c5a-91c9-067f7b4a904a)" type="video/mp4" />
 	Your browser does not support the video tag. You can download the demo here: [ReelReviewDemo.mp4](ReelReviewDemo.mp4)
 </video>
+
+
 
 ## How To Use
 
